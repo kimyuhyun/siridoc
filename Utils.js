@@ -27,6 +27,7 @@ class Utils {
                                 name1 = ?,
                                 link = ? `;
                             db.query(sql, [req.session.mid, req.query.name1, CURRENT_URL], function(err, rows, fields) {
+                                console.log(err);
                                 self.getSaveMenu(req).then(function(data) {
                                     resolve(data);
                                 });
