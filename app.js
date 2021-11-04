@@ -16,13 +16,6 @@ const crudRouter = require('./routes/crud');
 const analyzerRouter = require('./routes/analyzer');
 const articleRouter = require('./routes/article');
 const apiRouter = require('./routes/api');
-const fees0Router = require('./routes/fees0');
-const fees1Router = require('./routes/fees1');
-const fees2Router = require('./routes/fees2');
-const lawFeesRouter = require('./routes/law_fees');
-const taxRouter = require('./routes/tax');
-
-const newTaxRouter = require('./routes/new_tax');
 
 
 const app = express();
@@ -63,13 +56,6 @@ app.use('/crud', crudRouter);
 app.use('/analyzer', analyzerRouter);
 app.use('/article', articleRouter);
 app.use('/api', apiRouter);
-app.use('/fees0', fees0Router);
-app.use('/fees1', fees1Router);
-app.use('/fees2', fees2Router);
-app.use('/law_fees', lawFeesRouter);
-app.use('/tax', taxRouter);
-
-app.use('/new_tax', newTaxRouter);
 
 
 
