@@ -1,0 +1,231 @@
+extends layout
+
+block content
+
+    div(class='row')
+        div(class='col-12 col-md-8')
+            div(id='grid' style='width: 100%; height: 700px;')
+
+
+        div(class='col-12 col-md-4')
+            div(id='form')
+                div(class='w2ui-page page-0')
+                    div(class='w2ui-field w2ui-span2')                    
+                        label 접종명
+                        div
+                            input(name='title')
+                            
+                    div(class='w2ui-field w2ui-span2')
+                        label 장소
+                        div
+                            input(name='place')
+                            
+                    div(class='w2ui-field w2ui-span2')
+                        label 시작일
+                        div
+                            input(name='sdate')
+                
+                    div(class='w2ui-field w2ui-span2')
+                        label 종료일
+                        div
+                            input(name='edate')
+                            
+                            
+                    div(class='w2ui-field w2ui-span2')
+                        label 구분
+                        div(class='d-flex flex-row')
+                            input(class='me-1', id='radio1', name='is_free', type='radio', value='1')
+                            label(class='mt-1', for='radio1') 무료
+                            
+                            input(class='ms-3 me-1', id='radio2', name='is_free', type='radio', value='2', checked)
+                            label(class='mt-1', for='radio2') 유료
+                            
+
+                div(class='w2ui-buttons')
+                    button(class='w2ui-btn' name='reset') 리셋
+                    button(class='w2ui-btn w2ui-btn-blue' name='save' id='save') 입력
+
+
+    //- 들여쓰기 중요함
+    script.
+        let fileLimitCount = 10;
+        let table = 'INOCULATION_tbl';
+        let grid = {
+            url: {
+                get: '/crud/list?table=' + table,
+                remove: '/crud/remove?table=' + table,
+            },
+            recid: 'idx',
+            limit: 20,
+            recordHeight: 30,
+            autoLoad: false,
+            name: 'grid',
+            show: {
+                selectColumn: true,
+                footer: true,
+                toolbar: true,
+                toolbarDelete: true,
+            },
+            sortData: [
+                { field: 'sdate', direction: 'DESC' },
+                { field: 'title', direction: 'ASC' },
+            ],
+            multiSelect: true,
+            multiSearch: true,
+            toolbar : {
+                items: [
+                    { type: 'button', id: 'copy', caption: '복사', img: 'icon-page' }
+                ],
+                onClick: function (target, data) {
+                    console.log(target);
+                    if (target == 'copy') {
+                        if (w2ui.grid.getSelection().length == 0) {
+                            w2alert('체크된 항목이 없습니다.');
+                            return;
+                        }
+                        w2confirm('체크된 항목을 복사 하시겠습니까?').yes(function() {
+                            var params = new URLSearchParams();
+                            for (var i = 0; i < w2ui.grid.getSelection().length; i++) {
+                                var value = w2ui.grid.getSelection()[i];
+                                params.append('idx', value);
+                            }
+                            
+                            axios.post('/crud/copy?table=' + table, params).then(function (res) {
+                                console.dir(res.data);
+                                w2ui.grid.reload();
+                                formClear();
+                                $("#save").text("입력");
+                            });
+                        }).no(function() {
+                            return;
+                        });
+                    }
+                },
+            },
+            onError:function(e) {
+                console.log(e.xhr.responseText);
+            },
+            onClick: function(e) {
+                if (e.column == null) {
+                    return;
+                }
+                e.onComplete = function () {
+                    let sel = w2ui.grid.getSelection();
+                    if (sel.length == 1) {
+                        w2ui.form.recid = sel[0];
+                        formClear();
+                        w2ui.form.record = $.extend(true, {}, w2ui.grid.get(sel[0]));
+                        //- w2ui.grid.selectNone();
+                        
+                        console.log(w2ui.form.record);
+                    
+                        w2ui.form.refresh();
+                        $("#save").text("수정");
+                    } else {
+                        formClear();
+                        $("#save").text("입력");
+                    }
+                }
+            },
+            searches: [
+                { field: 'title', caption: '제목', type: 'text' },			//세팅 해줘야함
+            ],
+            columns: [
+                { field: 'idx', caption: '번호', size: '50px', sortable: true, resizable: true, attr: 'align=center' },	//세팅 해줘야함
+                { field: 'title', caption: '접종명', size: '100%', min: 150, sortable: true, resizable: true, attr: 'align=left' },	//세팅 해줘야함
+                { field: 'place', caption: '장소', size: '120px', resizable: true, sortable: true, attr: 'align=center' },	//세팅 해줘야함
+                { field: 'sdate', caption: '시작일', size: '100px', resizable: true, sortable: true, attr: 'align=center' },	//세팅 해줘야함
+                { field: 'edate', caption: '종료일', size: '100px', resizable: true, sortable: true, attr: 'align=center' },	//세팅 해줘야함
+                { field: 'created', caption: '구분', size: '80px', resizable: true, sortable: true, attr: 'align=center',
+                    render: function(rec) {
+                        if (rec.is_free == 1) {
+                            return '무료';
+                        }
+                        return '유료';
+                    }
+                },
+                { field: 'created', caption: '생성일', size: '100px', resizable: true, sortable: true, attr: 'align=center',
+                    render: function(rec) {
+                        return util_convert_to_millis(rec.created);
+                    }
+                },
+                { field: 'modified', caption: '수정일', size: '100px', resizable: true, sortable: true, attr: 'align=center',
+                    render: function(rec) {
+                        return util_convert_to_millis(rec.modified);
+                    }
+                },
+            ],
+        };
+        let form = {
+            name: 'form',
+            fields: [
+                { field: 'title', type: 'text', required: true }, 
+                { field: 'place', type: 'text', required: true }, 
+                { field: 'sdate', type: 'date', required: true }, 
+                { field: 'edate', type: 'date', required: true }, 
+                { field: 'is_free', type: 'radio', required: true }, 
+            ],
+            actions: {
+                reset: function () {
+                    formClear();
+                    $("#save").text("입력");
+                },
+                save: function () {
+                    let errors = this.validate();
+                    if (errors.length > 0) {
+                        return;
+                    }
+                    
+                    w2popup.open({
+            		    width    : 220,
+            		    height    : 60,
+            		    modal    : true,
+            		    body    : '<div class="w2ui-centered"><div style="padding: 0px 10px 10px 10px;">'+
+            		              '        <div class="w2ui-spinner" '+
+            		              '            style="width: 22px; height: 22px; position: relative; top: 6px;"></div>'+
+            		              '        Loading... '+
+            		              '</div></div>'
+            		});
+                    
+                    // - 세팅해줘야함.
+                    this.record.table = table;
+                    //
+                    let formData = new FormData();
+                    for (let key in this.record) {
+                        formData.append(key, this.record[key]);
+                    }
+                    axios.post('/crud/write', formData).then(function (res) {
+                        console.dir(res.data);
+                        $("#save").text("입력");
+                        formClear();
+                        if (res.data.code == 1) {
+                            setTimeout(function () {
+                                w2ui.grid.reload();
+                                w2popup.close();
+                            }, 500);
+                        } else if (res.data.code == 2) {
+                            setTimeout(function () {
+                                w2ui.grid.set(res.data.record.idx, res.data.record, false);
+                                //- w2ui.grid.selectNone();
+                                w2popup.close();
+                            }, 500);
+                        }
+                    });
+                }
+            },
+            onError: function (e) {
+                console.log(e.xhr.responseText);
+            }
+        };
+        
+        $(function () {
+            $('#grid').w2grid(grid);
+            $('#form').w2form(form);
+        });
+        function formClear() {
+            console.log("formClear");
+            w2ui.form.clear();
+        	w2ui.form.refresh();
+            w2ui.form.resize();
+        }
+        
