@@ -16,10 +16,12 @@ const crudRouter = require('./routes/crud');
 const analyzerRouter = require('./routes/analyzer');
 const articleRouter = require('./routes/article');
 const apiRouter = require('./routes/api');
-
+const authRouter = require('./routes/auth');
+const termsRouter = require('./routes/terms');
+const familyRouter = require('./routes/family');
+const muscleRouter = require('./routes/muscle');
 
 const app = express();
-
 
 app.use(requestIp.mw());
 app.use(session({
@@ -56,6 +58,10 @@ app.use('/crud', crudRouter);
 app.use('/analyzer', analyzerRouter);
 app.use('/article', articleRouter);
 app.use('/api', apiRouter);
+app.use('/auth', authRouter);
+app.use('/terms', termsRouter);
+app.use('/family', familyRouter);
+app.use('/muscle', muscleRouter);
 
 
 

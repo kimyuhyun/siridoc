@@ -173,7 +173,7 @@ class Utils {
         fields['data'] = {};
 
         fields['registration_ids'] = fcmArr;
-        fields['notification']['title'] = '마이베이비';
+        fields['notification']['title'] = 'Siridoc';
         fields['notification']['body'] = msg;
 
         if (board_id == 'growth') {
@@ -237,7 +237,19 @@ class Utils {
         return arr;
     }
 
+    getAge(birth) {
+        var date = new Date();
+        var year = date.getFullYear();
+        var tmp = birth.split('-')[0];
+        var age = year - tmp;
+        return age;
+    }
 
+    getAge2(birth, year) {
+        var tmp = birth.split('-')[0];
+        var age = year - tmp;
+        return age;
+    }
 }
 
 module.exports = new Utils();

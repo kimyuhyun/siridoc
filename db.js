@@ -1,7 +1,7 @@
 require('dotenv').config();
-var maria = require('mysql');
+let maria = require('mysql');
 
-var option = {
+let option = {
     host: process.env.DB_HOST,
     post: process.env.DB_SERVER_PORT,
     user: process.env.DB_USER,
@@ -9,9 +9,6 @@ var option = {
     database: process.env.DB_DATABASE,
     dateStrings: 'date'
 };
-
-var conn = maria.createConnection(option);
-
-
+let conn = maria.createConnection(option);
 module.exports = conn;
 module.exports.connAccount = option;
