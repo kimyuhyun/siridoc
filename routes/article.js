@@ -49,13 +49,11 @@ async function setLog(req, res, next) {
 router.get('/list', setLog, async function(req, res, next) {
     const board_id = req.query.board_id;
     const id = req.query.id;
-    const lang = req.query.lang;
 
     var page = req.query.page;
     page = page * 20;
 
     var arr = [];
-    arr.push(lang);
     arr.push(board_id);
 
     await new Promise(function(resolve, reject) {
@@ -87,7 +85,6 @@ router.get('/list', setLog, async function(req, res, next) {
             BOARD_tbl as A
             WHERE step = 1
             AND is_use = 1
-            AND lang = ?
             AND board_id = ? `;
         if (id != '') {
             sql += ` AND id = ? `;

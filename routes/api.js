@@ -37,6 +37,34 @@ async function setLog(req, res, next) {
         console.log(data);
     });
 
+    fs.readdir('./liveuser', async function(err, filelist) {
+        for (file of filelist) {
+            await new Promise(function(resolve, reject) {
+                fs.readFile('./liveuser/' + file, 'utf8', function(err, data) {
+                    resolve(data);
+                });
+            }).then(function(data) {
+                try {
+                    if (file != 'dummy') {
+                        var tmp = data.split('|S|');
+                        console.log(data);
+                        moment.tz.setDefault("Asia/Seoul");
+                        var connTime = moment.unix(tmp[0] / 1000).format('YYYY-MM-DD HH:mm');
+                        var minDiff = moment.duration(moment(new Date()).diff(moment(connTime))).asMinutes();
+                        if (minDiff > 4) {
+                            console.log(minDiff);
+                            fs.unlink('./liveuser/' + file, function(err) {
+                                console.log(err);
+                            });
+                        }
+                    }
+                } catch (e) {
+                    console.log(e);
+                }
+            });
+        }
+    });
+
     //현재 접속자 파일 생성
     var memo = new Date().getTime() + "|S|" + req.baseUrl + req.path;
     fs.writeFile('./liveuser/'+ip, memo, function(err) {

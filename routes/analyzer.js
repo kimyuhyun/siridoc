@@ -15,15 +15,11 @@ global.CURRENT_URL;
 //
 
 function userChecking(req, res, next) {
-    if (process.env.NODE_ENV != 'development') {
-        if (req.session.mid == null) {
-            res.redirect('/admin/login');
-            return;
-        }
+    if (req.session.mid == null) {
+        res.redirect('/admin/login');
+        return;
     }
-
     CURRENT_URL = req.baseUrl + req.path;
-
     utils.setSaveMenu(req).then(function(data) {
         SAVE_MENUS = data;
         next();

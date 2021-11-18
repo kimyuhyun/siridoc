@@ -22,11 +22,15 @@ var menu = [{
                 "link": "/admin/page/notice"
             },
             {
+                "title": "자유게시판",
+                "link": "/admin/page/free"
+            },
+            {
                 "title": "고객센터",
                 "link": "/admin/page/cscenter"
             },
             {
-                "title": "신고",
+                "title": "신고게시판",
                 "link": "/admin/page/singo"
             },
         ]

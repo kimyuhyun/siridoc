@@ -37,7 +37,10 @@ const upload = multer({
 
 function userChecking(req, res, next) {
     //여기서 토큰 체크!
-
+    if (req.session.mid == null) {
+        res.redirect('/admin/login');
+        return;
+    }
     //
     next();
 }
