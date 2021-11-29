@@ -246,6 +246,7 @@ class Utils {
     }
 
     getAge2(birth, year) {
+        console.log(birth, year);
         var tmp = birth.split('-')[0];
         var age = year - tmp;
         return age;
