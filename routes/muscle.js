@@ -169,7 +169,7 @@ router.post('/check_step2', setLog, async function(req, res, next) {
         arr.msg = "당신은 심각 수준의 근감소증이 진행중 입니다.";
         arr.code = 3;
     } else {
-        arr.msg = `Error: ${v0}, ${v1}, ${v2}`;
+        arr.msg = `Error: Low muscle: ${v0}, Low physical: ${v1}, Low ASM: ${v2}`;
         arr.code = 0;
     }
 
