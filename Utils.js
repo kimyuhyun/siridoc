@@ -219,6 +219,10 @@ class Utils {
 
     //null 값은 빈값으로 처리해준다!!
     nvl(arr) {
+        if (arr == null) {
+            return arr;
+        }
+        
         if (arr.length != null) {
             for (var rows of arr) {
                 for (var i in rows) {
