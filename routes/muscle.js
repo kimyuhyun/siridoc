@@ -51,7 +51,7 @@ async function setLog(req, res, next) {
 
 
 router.post('/check_step1', setLog, async function(req, res, next) {
-    let { idx, memb_idx, wdate, gender, val0, val1, val2 } = req.body;
+    let { idx, memb_idx, wdate, gender, sarc_f, val0, val1, val2 } = req.body;
     var v0 = false, v1 = false, v2 = false;
     var arr = {};
 /**
@@ -63,14 +63,18 @@ router.post('/check_step1', setLog, async function(req, res, next) {
 
 
     if (gender == 1) {
-        v0 = eval(val0) < 34;
+        if (eval(val0) < 34 || eval(sarc_f) <= 4) {
+            v0 = true;
+        }
         v1 = eval(val1) < 28;
-        v2 = eval(val2) >= 12;
     } else {
-        v0 = eval(val0) < 33;
+        if (eval(val0) < 33 || eval(sarc_f) <= 4) {
+            v0 = true;
+        }
         v1 = eval(val1) < 18;
-        v2 = eval(val2) >= 12;
     }
+
+    v2 = eval(val2) >= 12;
 
     console.log(v0, v1, v2);
 
@@ -96,8 +100,8 @@ router.post('/check_step1', setLog, async function(req, res, next) {
     if (arr.code == 1) {
         await new Promise(function(resolve, reject) {
             if (idx) {
-                const sql = `UPDATE MUSCLE_tbl SET val0 = ?, val1 = ?, val2 = ?, status = ?, gender = ?, memb_idx = ?, modified = NOW() WHERE idx = ?`;
-                db.query(sql, [val0, val1, val2, arr.code, gender, memb_idx, idx], function(err, rows, fields) {
+                const sql = `UPDATE MUSCLE_tbl SET sarc_f = ?, val0 = ?, val1 = ?, val2 = ?, status = ?, gender = ?, memb_idx = ?, modified = NOW() WHERE idx = ?`;
+                db.query(sql, [sarc_f, val0, val1, val2, arr.code, gender, memb_idx, idx], function(err, rows, fields) {
                     console.log(rows);
                     if (!err) {
                         resolve(rows);
@@ -108,8 +112,8 @@ router.post('/check_step1', setLog, async function(req, res, next) {
                     }
                 });
             } else {
-                const sql = `INSERT INTO MUSCLE_tbl SET wdate = ?, val0 = ?, val1 = ?, val2 = ?, status = ?, gender = ?, memb_idx = ?, created = NOW(), modified = NOW()`;
-                db.query(sql, [wdate, val0, val1, val2, arr.code, gender, memb_idx], function(err, rows, fields) {
+                const sql = `INSERT INTO MUSCLE_tbl SET wdate = ?, sarc_f = ?, val0 = ?, val1 = ?, val2 = ?, status = ?, gender = ?, memb_idx = ?, created = NOW(), modified = NOW()`;
+                db.query(sql, [wdate, sarc_f, val0, val1, val2, arr.code, gender, memb_idx], function(err, rows, fields) {
                     console.log(rows);
                     if (!err) {
                         resolve(rows);
