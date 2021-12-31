@@ -27,12 +27,12 @@ var server = http.createServer(app);
 
  server.listen(port, '0.0.0.0', function() {
      //추가됨!
-     // const db = require('../db');
-     //
-     // setInterval(function() {
-     //     db.query('SELECT 1');
-     //     // console.log('SELECT 1');
-     // }, 60000);
+     const db = require('../db');
+
+     setInterval(function() {
+         db.query('SELECT 1');
+         // console.log('SELECT 1');
+     }, 60000);
 
      var os = require('os');
      var ifaces = os.networkInterfaces();

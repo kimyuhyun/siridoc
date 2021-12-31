@@ -95,6 +95,27 @@ router.get('/get_bmi_data', setLog, async function(req, res, next) {
     res.send(arr);
 });
 
+router.get('/get_asm_data', setLog, async function(req, res, next) {
+    //asm 그래프 데이터!
+    var arr = [];
+    await new Promise(function(resolve, reject) {
+        let sql = `SELECT gender, age, avg, dvi FROM ASM_tbl ORDER BY age ASC`;
+        db.query(sql, function(err, rows, fields) {
+            console.log(rows);
+            if (!err) {
+                resolve(rows);
+            } else {
+                console.log(err);
+                res.send(err);
+                return;
+            }
+        });
+    }).then(function(data) {
+        arr = utils.nvl(data);
+    });
+    res.send(arr);
+});
+
 router.get('/get_user_info/:idx', setLog, async function(req, res, next) {
     let idx = req.params.idx;
 
@@ -162,6 +183,7 @@ router.get('/get_user_info/:idx', setLog, async function(req, res, next) {
 
     //근손실 측정 데이터!
     var muscleArr = [];
+    var asmArr = [];
     await new Promise(function(resolve, reject) {
         let sql = `
             SELECT idx, status, gender, wdate, val0, val1, val2, val3, val4, val5, val6, val7, val8 FROM MUSCLE_tbl
@@ -177,11 +199,23 @@ router.get('/get_user_info/:idx', setLog, async function(req, res, next) {
             }
         });
     }).then(function(data) {
+        var tmp = '', oldAge = '-9999';
+
+        for (obj of data) {
+            tmp = utils.getAge2(arr.birth, obj.wdate.split('-')[0]);
+            if (tmp != oldAge) {
+                oldAge = tmp;
+                asmArr.push({
+                    age: tmp,
+                    asm: obj.val8,
+                });
+            }
+        }
+
         muscleArr = utils.nvl(data);
     });
     arr.muscle_arr = muscleArr;
-
-
+    arr.asm_arr = asmArr;
 
     res.send(arr);
 });
@@ -251,6 +285,28 @@ router.get('/get_muscle_list/:memb_idx', setLog, async function(req, res, next) 
     await new Promise(function(resolve, reject) {
         let sql = ` SELECT idx, status, wdate FROM MUSCLE_tbl WHERE memb_idx = ? ORDER BY wdate DESC, idx DESC `;
         db.query(sql, memb_idx, function(err, rows, fields) {
+            if (!err) {
+                resolve(rows);
+            } else {
+                console.log(err);
+                res.send(err);
+                return;
+            }
+        });
+    }).then(function(data) {
+        arr = utils.nvl(data);
+    });
+    res.send(arr);
+});
+
+router.get('/get_health_food/:memb_idx', setLog, async function(req, res, next) {
+    let memb_idx = req.params.memb_idx;
+
+    var arr = [];
+    await new Promise(function(resolve, reject) {
+        let sql = `SELECT * FROM HEALTH_FOOD_tbl`;
+        db.query(sql, function(err, rows, fields) {
+            console.log(rows);
             if (!err) {
                 resolve(rows);
             } else {

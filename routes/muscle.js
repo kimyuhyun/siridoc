@@ -133,7 +133,7 @@ router.post('/check_step1', setLog, async function(req, res, next) {
 });
 
 router.post('/check_step2', setLog, async function(req, res, next) {
-    let { idx, memb_idx, wdate, gender, val0, val1, val2, val3, val4, val5, val6, val7, val8 } = req.body;
+    let { idx, memb_idx, wdate, gender, sarc_f, val0, val1, val2, val3, val4, val5, val6, val7, val8 } = req.body;
     var v0 = false, v1 = false, v2 = false;
     var arr = {};
 
@@ -184,6 +184,8 @@ router.post('/check_step2', setLog, async function(req, res, next) {
         if (idx) {
             const sql = `
                 UPDATE MUSCLE_tbl SET
+                sarc_f = ?,
+                wdate = ?,
                 val0 = ?,
                 val1 = ?,
                 val2 = ?,
@@ -198,7 +200,7 @@ router.post('/check_step2', setLog, async function(req, res, next) {
                 memb_idx = ?,
                 modified = NOW()
                 WHERE idx = ?`;
-            db.query(sql, [val0, val1, val2, val3, val4, val5, val6, val7, val8, arr.code, gender, memb_idx, idx], function(err, rows, fields) {
+            db.query(sql, [sarc_f, wdate, val0, val1, val2, val3, val4, val5, val6, val7, val8, arr.code, gender, memb_idx, idx], function(err, rows, fields) {
                 console.log(rows);
                 if (!err) {
                     resolve(rows);
@@ -211,6 +213,7 @@ router.post('/check_step2', setLog, async function(req, res, next) {
         } else {
             const sql = `
                 INSERT INTO MUSCLE_tbl SET
+                sarc_f = ?,
                 val0 = ?,
                 val1 = ?,
                 val2 = ?,
@@ -226,7 +229,7 @@ router.post('/check_step2', setLog, async function(req, res, next) {
                 memb_idx = ?,
                 created = NOW(),
                 modified = NOW()`;
-            db.query(sql, [val0, val1, val2, val3, val4, val5, val6, val7, val8 ,wdate, arr.code, gender, memb_idx], function(err, rows, fields) {
+            db.query(sql, [sarc_f, val0, val1, val2, val3, val4, val5, val6, val7, val8 ,wdate, arr.code, gender, memb_idx], function(err, rows, fields) {
                 console.log(rows);
                 if (!err) {
                     resolve(rows);
@@ -237,10 +240,10 @@ router.post('/check_step2', setLog, async function(req, res, next) {
                 }
             });
         }
-    }).then();
-
+    }).then(function(data) {
+        arr.rows = req.body;
+    });
     res.send(arr);
-
 });
 
 

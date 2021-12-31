@@ -1,4 +1,4 @@
-var menu = [{
+let menu = [{
         "title": "회원관리",
         "child": [{
                 "title": "권한 관리",
@@ -12,6 +12,15 @@ var menu = [{
                 "title": "회원 관리",
                 "link": "/admin/page/user"
             }
+        ]
+    },
+    {
+        "title": "건강기능식품",
+        "child": [
+            {
+                "title": "건강기능식품 등록",
+                "link": "/admin/page/health_food"
+            },
         ]
     },
     {
@@ -35,6 +44,7 @@ var menu = [{
             },
         ]
     },
+
     {
         "title": "통계",
         "child": [{
