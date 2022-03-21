@@ -80,7 +80,7 @@ router.get('/get_bmi_data', setLog, async function(req, res, next) {
     await new Promise(function(resolve, reject) {
         let sql = `SELECT gender, age, avg FROM BMI_tbl ORDER BY age ASC`;
         db.query(sql, function(err, rows, fields) {
-            console.log(rows);
+            // console.log(rows);
             if (!err) {
                 resolve(rows);
             } else {
@@ -101,7 +101,7 @@ router.get('/get_asm_data', setLog, async function(req, res, next) {
     await new Promise(function(resolve, reject) {
         let sql = `SELECT gender, age, avg, dvi FROM ASM_tbl ORDER BY age ASC`;
         db.query(sql, function(err, rows, fields) {
-            console.log(rows);
+            // console.log(rows);
             if (!err) {
                 resolve(rows);
             } else {
@@ -117,7 +117,7 @@ router.get('/get_asm_data', setLog, async function(req, res, next) {
 });
 
 router.get('/get_user_info/:idx', setLog, async function(req, res, next) {
-    let idx = req.params.idx;
+    var idx = req.params.idx;
 
     var arr = {};
     await new Promise(function(resolve, reject) {
@@ -185,10 +185,11 @@ router.get('/get_user_info/:idx', setLog, async function(req, res, next) {
     var muscleArr = [];
     var asmArr = [];
     await new Promise(function(resolve, reject) {
-        let sql = `
-            SELECT idx, status, gender, wdate, val0, val1, val2, val3, val4, val5, val6, val7, val8 FROM MUSCLE_tbl
-            WHERE memb_idx = ? ORDER BY wdate DESC, idx DESC LIMIT 0 ,10
-        `;
+        // var sql = `
+        //     SELECT idx, status, gender, wdate, val0, val1, val2, val3, val4, val5, val6, val7, val8 FROM MUSCLE_tbl
+        //     WHERE memb_idx = ? ORDER BY wdate DESC, idx DESC LIMIT 0 ,10
+        // `;
+        var sql = `SELECT idx, status, wdate, asm FROM MUSCLE_CHECK_tbl WHERE memb_idx = ? ORDER BY wdate DESC, idx DESC LIMIT 0 ,10`;
         db.query(sql, idx, function(err, rows, fields) {
             if (!err) {
                 resolve(rows);
@@ -207,7 +208,7 @@ router.get('/get_user_info/:idx', setLog, async function(req, res, next) {
                 oldAge = tmp;
                 asmArr.push({
                     age: tmp,
-                    asm: obj.val8,
+                    asm: obj.asm,
                 });
             }
         }

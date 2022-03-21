@@ -217,12 +217,31 @@ class Utils {
         return result;
     }
 
+    async queryResult(sql, params) {
+        var arr = [];
+        await new Promise(function(resolve, reject) {
+            db.query(sql, params, function(err, rows, fields) {
+                if (!err) {
+                    resolve(rows);
+                } else {
+                    reject(err);
+                }
+            });
+        }).then(async function(data) {
+            arr = data;
+        }).catch(function(reason) {
+            arr = reason;
+        });
+        arr = await this.nvl(arr);
+        return arr;
+    }
+
     //null 값은 빈값으로 처리해준다!!
     nvl(arr) {
         if (arr == null) {
             return arr;
         }
-        
+
         if (arr.length != null) {
             for (var rows of arr) {
                 for (var i in rows) {

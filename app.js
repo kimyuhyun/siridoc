@@ -21,6 +21,7 @@ const authRouter = require('./routes/auth');
 const termsRouter = require('./routes/terms');
 const familyRouter = require('./routes/family');
 const muscleRouter = require('./routes/muscle');
+const muscleCheckRouter = require('./routes/muscle_check');
 
 const app = express();
 
@@ -64,6 +65,7 @@ app.use('/auth', authRouter);
 app.use('/terms', termsRouter);
 app.use('/family', familyRouter);
 app.use('/muscle', muscleRouter);
+app.use('/muscle_check', muscleCheckRouter);
 
 
 
