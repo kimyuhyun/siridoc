@@ -189,7 +189,7 @@ router.get('/get_user_info/:idx', setLog, async function(req, res, next) {
         //     SELECT idx, status, gender, wdate, val0, val1, val2, val3, val4, val5, val6, val7, val8 FROM MUSCLE_tbl
         //     WHERE memb_idx = ? ORDER BY wdate DESC, idx DESC LIMIT 0 ,10
         // `;
-        var sql = `SELECT idx, status, wdate, asm FROM MUSCLE_CHECK_tbl WHERE memb_idx = ? ORDER BY wdate DESC, idx DESC LIMIT 0 ,10`;
+        var sql = `SELECT idx, status, age, created FROM NEW_MUSCLE_CHECK_tbl WHERE memb_idx = ? ORDER BY created DESC, idx DESC LIMIT 0 ,10`;
         db.query(sql, idx, function(err, rows, fields) {
             if (!err) {
                 resolve(rows);
@@ -203,7 +203,7 @@ router.get('/get_user_info/:idx', setLog, async function(req, res, next) {
         var tmp = '', oldAge = '-9999';
 
         for (obj of data) {
-            tmp = utils.getAge2(arr.birth, obj.wdate.split('-')[0]);
+            tmp = obj.age;
             if (tmp != oldAge) {
                 oldAge = tmp;
                 asmArr.push({
@@ -300,12 +300,13 @@ router.get('/get_muscle_list/:memb_idx', setLog, async function(req, res, next) 
     res.send(arr);
 });
 
-router.get('/get_health_food/:memb_idx', setLog, async function(req, res, next) {
-    let memb_idx = req.params.memb_idx;
+router.get('/get_recommend_list/:memb_idx/:table', setLog, async function(req, res, next) {
+    const memb_idx = req.params.memb_idx;
+    const table = req.params.table;
 
     var arr = [];
     await new Promise(function(resolve, reject) {
-        let sql = `SELECT * FROM HEALTH_FOOD_tbl`;
+        const sql = `SELECT * FROM ${table}`;
         db.query(sql, function(err, rows, fields) {
             console.log(rows);
             if (!err) {
@@ -319,6 +320,27 @@ router.get('/get_health_food/:memb_idx', setLog, async function(req, res, next) 
     }).then(function(data) {
         arr = utils.nvl(data);
     });
+    res.send(arr);
+});
+
+router.get('/get_dct_data/:dct_id', setLog, async function(req, res, next) {
+    const dct_id = req.params.dct_id;
+
+    var sql = `SELECT name1 FROM MEMB_tbl WHERE id = ? `;
+    var params = [dct_id];
+    var arr = await utils.queryResult(sql, params);
+    console.log(arr);
+    res.send(arr[0]);
+});
+
+router.get('/match_dct/:memb_idx/:dct_id', setLog, async function(req, res, next) {
+    const memb_idx = req.params.memb_idx;
+    const dct_id = req.params.dct_id;
+
+    var sql = `UPDATE MEMB_tbl SET dct_id = ? WHERE idx = ?`;
+    var params = [dct_id, memb_idx];
+    var arr = await utils.queryResult(sql, params);
+    console.log(arr);
     res.send(arr);
 });
 

@@ -1,334 +1,271 @@
 const express = require('express');
 const router = express.Router();
-const bodyParser = require('body-parser');
 const fs = require('fs')
-const multer = require('multer');
-const uniqid = require('uniqid');
 const db = require('../db');
 const utils = require('../Utils');
 const FormData = require('form-data');
 const axios = require('axios');
-
-const upload = multer({
-    storage: multer.diskStorage({
-        destination: function(req, file, cb) {
-            var date = new Date();
-            var month = eval(date.getMonth() + 1);
-            if (eval(date.getMonth() + 1) < 10) {
-                month = "0" + eval(date.getMonth() + 1);
-            }
-            var dir = 'data/' + date.getFullYear() + "" + month;
-            if (!fs.existsSync(dir)) {
-                fs.mkdirSync(dir);
-            }
-            cb(null, dir);
-        },
-        filename: function(req, file, cb) {
-            var tmp = file.originalname.split('.');
-            var mimeType = tmp[tmp.length - 1];
-            if ('php|phtm|htm|cgi|pl|exe|jsp|asp|inc'.includes(mimeType)) {
-                mimeType = mimeType + "x";
-            }
-            cb(null, uniqid(file.filename) + '.' + mimeType);
-        }
-    })
-});
+const path = require('path');
+const menus = require('../menu');
 
 
-function userChecking(req, res, next) {
-    //여기서 토큰 체크!
-    if (req.session.mid == null) {
-        res.redirect('/admin/login');
+global.menus = menus;
+global.showMenuLinkArr;
+
+async function checking(req, res, next) {
+    if (!req.session.mid) {
+        res.redirect('/adm/login');
         return;
     }
-    //
+
+    var sql = `SELECT show_menu_link FROM GRADE_tbl WHERE level1 = ?`;
+    var params = [req.session.level1];
+    var arr = await utils.queryResult(sql, params);
+    console.log(arr[0].show_menu_link);
+    if (arr) {
+        global.showMenuLinkArr = arr[0].show_menu_link.substr(1, 9999).split(',');
+    }
     next();
 }
 
+router.get('/list/:view/:menu1/:menu2', checking, async function(req, res, next) {
+    var { view, menu1, menu2 } = req.params;
+    var { table, page, search_column, search_value, orderby } = req.query;
+    
+    var where = `WHERE 1=1 `;
 
-router.post('/list', userChecking, async function(req, res, next) {
-    var table = req.query.table;
-    var board_id = req.query.board_id;
-    var level1 = req.query.level1;
-    var step = req.query.step;
-    var parent_idx = req.query.parent_idx;
-    var params;
+    var records = [];
+    records.push(table);
 
-    if (req.body.request != null) {
-        params = JSON.parse(req.body.request);
+    for (key in req.session.my_params) {
+        where += ` AND ${key} = ? `;
+        records.push(req.session.my_params[key]);
+    }
+    
+    if (search_column && search_value) {
+        where += ` AND ?? LIKE ? `;
+        records.push(search_column);
+        records.push(`%${search_value}%`);
     } else {
-        params.offset = 0;
-        params.limit = 10;
+        search_column = '';
+        search_value = '';
     }
 
-    // console.log(params);
-
-    var records = 0;
-    var sql = "";
-    var where = " WHERE 1=1 ";
-    var orderby = "";
-    var start = params.offset == null ? 0 : params.offset;
-    var rows = params.limit;
-
-    if (board_id != null) {
-        where += " AND board_id = '" + board_id + "'";
-    }
-
-    if (step != null) {
-        where += " AND step = '" + step + "'";
-    }
-
-    if (parent_idx != null) {
-        where += " AND parent_idx = '" + parent_idx + "'";
-    }
-
-    if (level1 != null) {
-        where += " AND level1 = " + level1;
-    }
-
-    if (params.search != null) {
-        var tmp = "";
-        for (var i in params.search) {
-            if (i > 0) {
-                tmp += " OR ";
-            }
-            tmp += params.search[i].field + " LIKE '%" + params.search[i].value + "%'";
+    if (orderby) {
+        if (orderby.toLowerCase().includes('delete') || orderby.toLowerCase().includes('update') || orderby.toLowerCase().includes('select')) {
+            console.log('err', orderby);
+            res.send(orderby);
+            return;
         }
-        where += " AND (" + tmp + ")";
-    }
-
-
-    var sql = "SELECT COUNT(*) as CNT FROM " + table + where;
-    await db.query(sql, function(err, rows, fields) {
-        records = rows[0].CNT;
-    });
-
-
-    if (params.sort != null) {
-        orderby = ` ORDER BY `;
-        var tmp = '';
-        for (obj of params.sort) {
-            tmp += `, ${obj.field} ${obj.direction} `;
-        }
-        orderby += tmp.substring(1);
     } else {
-        orderby = " ORDER BY idx DESC ";
+        orderby = ' idx DESC ';
     }
 
-    sql = "SELECT * FROM " + table + where + orderby + " LIMIT " + start + ", " + rows;
-    console.log(sql);
-    await db.query(sql, function(err, rows, fields) {
-        var arr = new Object();
-        arr['status'] = 'success';
-        arr['total'] = records;
-        arr['records'] = rows;
-        res.send(arr);
+    var sql = `SELECT COUNT(*) as cnt FROM ?? ${where}`;
+    var arr = await utils.queryResult(sql, records);
+    console.log(sql, records, arr);
+
+    const pageHeler = utils.pageHelper(page, arr[0].cnt);
+
+    records.push(pageHeler.skipSize);
+    records.push(pageHeler.contentSize);
+
+    sql = `
+        SELECT 
+        * 
+        FROM ?? 
+        ${where} 
+        ORDER BY ${orderby}
+        LIMIT ?, ?
+    `;
+    arr = await utils.queryResult(sql, records);
+    // console.log(sql, records, arr);
+
+    var list = [];
+    for (row of arr) {
+        row.created = utils.utilConvertToMillis(row.created);
+        row.modified = utils.utilConvertToMillis(row.modified);
+        list.push(row);
+    }
+
+    var data = pageHeler;
+    data.table = table;
+    data.view = view;
+    data.orderby = orderby;
+    data.search_column = search_column;
+    data.search_value = search_value;
+    data.list = list;
+
+    res.render(`./adm/${view}.html`, {
+        myinfo: req.session,
+        menu1: req.params.menu1,
+        menu2: req.params.menu2,
+        data,
     });
 });
 
-router.get('/iterator', userChecking, async function(req, res, next) {
-    var table = req.query.table;
-    var sql = "SELECT * FROM " + table + " ORDER BY idx DESC";
-    db.query(sql, table, function(err, rows, fields) {
-        res.send(rows);
+
+router.get('/write', checking, async function(req, res, next) {
+    var { idx, return_url, table, view } = req.query;
+    
+    var row = {};
+    
+    if (idx) {
+        var sql = `SELECT * FROM ?? WHERE idx = ?`;
+        var params = [table, idx];
+        var arr = await utils.queryResult(sql, params);
+        row = arr[0];
+        console.log(sql, params);
+    }
+
+    if (req.session.my_params.board_id) {
+        row.board_id = req.session.my_params.board_id;
+    }
+
+    
+    res.render(`./adm/${view}_write.html`, {
+        myinfo: req.session,
+        return_url,
+        table,
+        row,
     });
 });
 
-router.post('/write', userChecking, upload.array('FILES'), async function(req, res, next) {
-    var table = req.body.table;
-    var idx = req.body.idx;
-
-    var uploadedLength = 0;
-    if (req.body.UPLOADED_FILES != null && req.body.UPLOADED_FILES != '') {
-        uploadedLength = req.body.UPLOADED_FILES.split(',').length;
-    }
-
-    for (i in req.files) {
-        var fileIndex = Number(i) + Number(uploadedLength);
-        await utils.setResize(req.files[i]).then(function(newFileName) {
-            newFileName = process.env.HOST_NAME + '/' + newFileName;
-            console.log('newFileName', newFileName);
-            eval("req.body.filename" + fileIndex + " = newFileName");
-        });
-    }
-
-    delete req.body.recid;
-    delete req.body.table;
+router.post('/write', checking, async function(req, res, next) {
+    const table = req.query.table;
+    const return_url = req.body.return_url;
+    const idx = req.body.idx;
     delete req.body.idx;
-    delete req.body.created;
-    delete req.body.modified;
-    delete req.body.UPLOADED_FILES;
-    delete req.body.FILES;
+    delete req.body.return_url;
+    
+    var isDateColnumn = true;
 
-    var sql = ""
-    var records = new Array();
+    //날짜 컬럼이 있는지 확인!
+    var sql = `SHOW COLUMNS FROM ?? LIKE 'created'`;
+    var arr = await utils.queryResult(sql, [table]);
+    if (!arr[0]) {
+        isDateColnumn = false;
+    }
+    
+    sql = '';
+    var records = [];
+    records.push(table);
 
     for (key in req.body) {
         if (req.body[key] != 'null') {
             if (key == 'pass1') {
-                sql += key + '= PASSWORD(?), ';
+                if (req.body[key]) {
+                    sql += key + '= PASSWORD(?), ';
+                    records.push(req.body[key]);
+                }
             } else {
                 sql += key + '= ?, ';
+                records.push(req.body[key]);
             }
-
-            records.push(req.body[key]);
         }
     }
 
-    // console.log(records);return;
-
-    if (idx == null) {
-        sql = "INSERT INTO " + table + " SET " + sql + " created = NOW(), modified = NOW()";
-        await db.query(sql, records, function(err, rows, fields) {
-            if (!err) {
-                var arr = new Object();
-                arr['code'] = 1;
-                arr['msg'] = '등록 되었습니다.';
-                res.send(arr);
-            } else {
-                res.send(err);
-            }
-        });
-    } else {
+    if (idx) {
         records.push(idx);
-        sql = "UPDATE " + table + " SET " + sql + " modified = NOW() WHERE idx = ?";
-        await db.query(sql, records, function(err, rows, fields) {
-            if (!err) {
-                db.query("SELECT * FROM " + table + " WHERE idx = ?", idx, function(err, rows, fields) {
-                    var arr = new Object();
-                    arr['code'] = 2;
-                    arr['msg'] = '수정 되었습니다.';
-                    arr['record'] = rows[0];
-                    res.send(arr);
-                });
-            } else {
-                res.send(err);
-            }
-        });
-    }
-    // console.log(sql, records);
-});
-
-router.get('/view', userChecking, async function(req, res, next) {
-    console.log('/view', req.body);
-
-    var arr = new Object();
-    arr['status'] = 'success';
-    res.send(arr);
-});
-
-router.post('/delete', userChecking, async function(req, res, next) {
-    const table = req.body.table;
-    const idx = req.body.idx;
-    const sql = `DELETE FROM ${table} WHERE idx = ?`;
-    db.query(sql, idx);
-    res.send({
-        code: 1,
-        msg: '삭제 되었습니다.'
-     });
-});
-
-router.post('/remove', userChecking, async function(req, res, next) {
-    var table = req.query.table;
-    var params = JSON.parse(req.body.request);
-    console.log(params);
-    var sql = ``;
-    for (idx of params.selected) {
-        sql = `DELETE FROM ${table} WHERE idx = ${idx}`;
-        db.query(sql);
-        console.log(sql);
-    }
-    var arr = new Object();
-    arr['code'] = 1;
-    res.send(arr);
-});
-
-router.post('/reply_delete', userChecking, async function(req, res, next) {
-    var table = req.query.table;
-    var params = JSON.parse(req.body.request);
-    console.log(params);
-    var sql = ``;
-    for (idx of params.selected) {
-        sql = `UPDATE ${table} SET id='admin', name1='관리자', memo='삭제된 댓글 입니다.', filename0='' WHERE idx = ${idx}`;
-        db.query(sql);
-    }
-    var arr = new Object();
-    arr['code'] = 1;
-    res.send(arr);
-});
-
-router.post('/copy', userChecking, async function(req, res, next) {
-    const table = req.query.table;
-    var sql = '';
-    var arr = [];
-
-    if (!Array.isArray(req.body.idx)) {
-        arr.push(req.body.idx);
-    } else {
-        arr = req.body.idx;
-    }
-
-    for (idx of arr) {
-        await new Promise(function(resolve, reject) {
-            sql = 'SELECT * FROM ' + table + ' WHERE idx = ?';
-            db.query(sql, idx, function(err, rows, fields) {
-                if (!err) {
-                    delete rows[0].idx;
-                    delete rows[0].modified;
-                    delete rows[0].created;
-
-                    let records = [];
-                    sql = 'INSERT INTO ' + table + ' SET ';
-                    for (key in rows[0]) {
-                        if (rows[0][key] != 'null') {
-                            if (key == 'pass1') {
-                                sql += key + '=PASSWORD(?),';
-                            } else {
-                                sql += key + '=?,';
-                            }
-                            records.push(rows[0][key]);
-                        }
-                    }
-                    sql += 'created=NOW(),modified=NOW()';
-
-                    db.query(sql, records, function(err, rows, fields) {
-                        if (!err) {
-                            resolve();
-                        } else {
-                            console.log(err);
-                        }
-                    });
-                } else {
-                    console.log(err);
-                }
-            });
-        }).then();
-    }
-
-    res.send({
-        code: 1,
-    });
-});
-
-
-router.post('/file_delete', userChecking, async function(req, res, next) {
-    console.log(req.body.filename);
-    await fs.exists(req.body.filename, function(exists) {
-        console.log(exists);
-        var arr = new Object();
-        if (exists) {
-            fs.unlink(req.body.filename, function(err) {
-                if (!err) {
-                    arr['code'] = 1;
-                    res.send(arr);
-                }
-            });
+        if (isDateColnumn) {
+            sql = `UPDATE ?? SET ${sql} modified = NOW() WHERE idx = ?`;
         } else {
-            arr['code'] = 0;
-            res.send(arr);
+            sql = `UPDATE ?? SET ${sql.slice(0, -2)}  WHERE idx = ?`;
         }
-    });
+    } else {
+        if (isDateColnumn) {
+            sql = `INSERT INTO ?? SET ${sql} created = NOW(), modified = NOW()`;
+        } else {
+            sql = `INSERT INTO ?? SET ${sql.slice(0, -2)}`;
+        }
+    }
+
+    console.log(`@@@@ ${sql}`, records);
+
+    var rs = await utils.queryResult(sql, records);
+
+    console.log(rs);
+
+    if (return_url) {
+        res.redirect(return_url);
+    } else {
+        res.send(rs);
+    }
 });
+
+
+router.get('/iterator', checking, async function(req, res, next) {
+    const table = req.query.table;
+    const sort1 = req.query.sort1;
+
+    var sql = ` SELECT * FROM ?? ORDER BY ? `;
+    var arr = await utils.queryResult(sql, [table, sort1]);
+    res.send(arr);
+});
+
+router.get('/delete', checking, async function(req, res, next) {
+    const return_url = req.query.return_url;
+    const table = req.query.table;
+    const idxArr = req.query.idx;
+
+    console.log(idxArr.length);
+    
+    for (idx of idxArr) {
+        console.log(table, idx);
+        db.query(`DELETE FROM ?? WHERE idx = ?`, [table, idx]);
+    }
+
+    if (return_url) {
+        res.redirect(return_url);
+    } else {
+        res.send('1');
+    }
+});
+
+router.post('/link_upload', async function(req, res, next) {
+    const urlLink = req.body.url_link;
+    console.log(urlLink);
+    var imageResponse = await axios({
+        url: urlLink,
+        method: 'GET',
+        responseType: 'arraybuffer'
+    });
+    const extension = path.extname(urlLink);
+    
+    //Create form data
+    const form = new FormData();
+    form.append('upload_file', imageResponse.data, {
+        contentType: `image/${extension}`,
+        name: `image`,
+        filename: `imageFileName.${extension}`
+    });
+    
+    //Submit form
+    const result = await axios({
+        url: `${process.env.IMAGE_SERVER}`, 
+        method: 'POST',
+        data: form, 
+        headers: { "Content-Type": `multipart/form-data; boundary=${form._boundary}` }
+    });
+    res.send(result.data);
+});
+
+router.get('/set_params_session', async function(req, res, next) {
+    if (req.query) {
+        var obj = {};
+        for (key in req.query) {
+            if (key != 'table') {
+                obj[key] = req.query[key];
+            }
+        }
+        req.session.my_params = obj;
+    } else {
+        req.session.my_params = {};
+    }
+    req.session.save();
+    res.send(true);
+});
+
 
 
 module.exports = router;

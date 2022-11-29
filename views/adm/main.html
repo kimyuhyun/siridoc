@@ -1,0 +1,47 @@
+<%- include('header.html') %>
+
+
+
+
+<div class="card shadow w-100">
+    <div class="card-body">
+        <table class="table table-borderless table-sm mb-0">
+<%
+            var i = -1;
+            var j = -1;
+            for (row1 of global.menus) {
+                i++;
+%>
+            <tr>
+                <th valign="middle"><%=row1.title%></th>
+                <td>
+<%
+                j = -1;
+                for (row2 of row1.child) {
+                    j++;
+
+                    if (myinfo.level1 > 1) {
+                        for (tmp of global.showMenuLinkArr) {
+                            if (row2.link.split('?')[0] == tmp) {
+%>
+                    <a class="btn btn-light" href='Javascript:getPageLink("<%=row2.link%>", "<%=i%>", "<%=j%>");'><%=row2.title%></a>
+<%
+                            }
+                        }
+                    } else {
+%>
+                    <a class="btn btn-light" href='Javascript:getPageLink("<%=row2.link%>", "<%=i%>", "<%=j%>");'><%=row2.title%></a>
+<%
+                    }
+                }
+%>
+                </td>
+            </tr>
+<%                
+            }
+%>
+        </table>
+    </div>
+</div>
+    
+<%- include('footer.html') %>

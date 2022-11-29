@@ -1,0 +1,151 @@
+<form name="frm2" method="post" action="/crud/write?table=<%=table%>" >
+    <input type="hidden" name="return_url" value="<%=return_url%>"/>
+    <input type="hidden" name="idx" value="<%=row.idx%>"/>
+    <input type="hidden" name="id" value="<%=myinfo.mid%>"/>
+    <input type="hidden" name="board_id" value="<%=row.board_id%>"/>
+    <input type="hidden" name="name1" value="<%=myinfo.name1%>"/>
+        
+    <table class="table table-borderless table-sm table-form">
+        <tr>
+            <th width="100">제목</th>
+            <td><input name='title' class='form-control' required value="<%=row.title%>"/></td>
+        </tr>
+
+        <tr>
+            <th>내용</th>
+            <td><textarea class="form-control" name="memo" rows="5" required><%=row.memo%></textarea></td>
+        </tr>
+
+        <tr>
+            <td colspan="2">
+                <div class="d-flex flex-wrap">
+<% 
+    var size = "100px";
+    for (var i = 0; i <= 9; i++) {
+        var filename = '';
+        if (row) {
+            filename = eval('row.filename' + i);
+        }
+%>
+                    <div class="me-3 mt-3" style="position: relative; width: <%=size%>; height: <%=size%>;" ondragenter="dragEnter(<%=i%>, event)" ondragleave="dragLeave(<%=i%>, event)" ondragover="dragOver(event)" ondrop="drop(<%=i%>, event)">
+<%
+
+
+        if (filename) {
+%>
+                        <label for="file-input<%=i%>">
+                            <img id="filename<%=i%>_IMG" src="<%=filename%>" class="img-thumbnail p-0" style="cursor: hand; width: <%=size%>; height: <%=size%>;" onclick="imageWindow('<%=filename%>');"/>
+                        </label>
+                        <input id="file-input<%=i%>" style="display: none;" type="file" onchange="upload(this, <%=i%>)"/>
+                        <img id="filename<%=i%>_X" onclick="deleteImage(<%=i%>)" src="/images/photo_x.png" class="X" style="position: absolute; cursor: pointer; top: -10px; right: -9px;" width="25" height="25">
+                        <input type="hidden" id="filename<%=i%>" name="filename<%=i%>" value="<%=filename%>" />
+<%
+        } else {
+%>
+                    
+                        <label for="file-input<%=i%>">
+                            <img id="filename<%=i%>_IMG" src="/images/no-img2.png" class="img-thumbnail p-0" style="cursor: hand;  width: <%=size%>; height: <%=size%>;"/>
+                        </label>
+                        <input id="file-input<%=i%>" style="display: none;" type="file" onchange="upload(this, <%=i%>)"/>
+                        <img id="filename<%=i%>_X" onclick="deleteImage(<%=i%>)" src="/images/photo_x.png" class="X" style="position: absolute; cursor: pointer; top: -10px; right: -9px; display: none;" width="25" height="25">
+                        <input type="hidden" id="filename<%=i%>" name="filename<%=i%>"/>
+<%
+        }
+%>
+                    </div>
+<%
+    }
+%>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <input type="submit" id="submit" style="display: none;"/>
+</form>
+
+<% if (row.idx) { %>
+    <%-include('reply.html')%>
+<% } %>
+
+<script>
+function dragEnter(i, e) {
+    console.log(i, "드래그 요소가 들어왔을떄", e);
+    $("#filename"+i+"_IMG").addClass("bg-dark");
+}
+function dragLeave(i, e) {
+    console.log(i, "드래그 요소가 나갔을때");
+    $("#filename"+i+"_IMG").addClass("img-thumbnail");
+    $("#filename"+i+"_IMG").removeClass("bg-dark");
+}
+function dragOver(e) {
+    // console.log("draging");
+    e.stopPropagation();
+    e.preventDefault();
+}
+
+function drop(i, e) {
+    console.log("드래그한 항목을 떨어뜨렸을때", e);
+    e.preventDefault();
+    var file = e.dataTransfer.files[0];
+
+    var formData = new FormData();
+    formData.append("upload_file", file, file.name);
+
+    $.ajax({
+        type: 'POST',
+        url: '<%=process.env.IMAGE_SERVER%>',
+        processData: false,
+        contentType: false,
+        data: formData,
+        dataType: "json",
+        success: function(res) {
+            console.dir(res);
+            $("#filename"+i).val(res.url);
+            $("#filename"+i+"_IMG").attr("src", res.url);
+            $("#filename"+i+"_IMG").attr("onclick", "imageWindow('"+res.url+"')");
+            $("#filename"+i+"_X").show();
+        }, err: function(err) {
+            console.log(err);
+        }
+    });
+}
+
+function upload(obj, i) {
+    var formData = new FormData();
+	formData.append("upload_file", $(obj)[0].files[0], $(obj)[0].files[0].name);
+
+    $.ajax({
+        type: 'POST',
+        url: '<%=process.env.IMAGE_SERVER%>',
+        processData: false,
+        contentType: false,
+        data: formData,
+        dataType: "json",
+        success: function(res) {
+            console.dir(res);
+            $("#filename"+i).val(res.url);
+            $("#filename"+i+"_IMG").attr("src", res.url);
+            $("#filename"+i+"_IMG").attr("onclick", "imageWindow('"+res.url+"')");
+            $("#filename"+i+"_X").show();
+        }, err: function(err) {
+            console.log(err);
+        }
+    });
+}
+
+
+function deleteImage(i) {
+    var path = $("#filename"+i+"_IMG").attr("src");
+    $("#filename"+i).val("");
+    $("#filename"+i+"_IMG").attr("src", "/images/no-img2.png");
+    $("#filename"+i+"_IMG").attr("onclick", "");
+    $("#filename"+i+"_X").hide();
+}
+
+function imageWindow(url) {
+    window.open(url, 'imageWindow',"width="+screen.width+", height="+screen.height+", toolbar=no, menubar=no, scrollbars=no, resizable=no, top=0, left=0");
+}
+</script>
+
+
+

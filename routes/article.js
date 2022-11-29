@@ -76,7 +76,6 @@ router.get('/list', setLog, async function(req, res, next) {
             A.filename8,
             A.filename9,
             A.created,
-            A.comment,
             (SELECT COUNT(*) FROM BOARD_tbl WHERE parent_idx = A.idx AND step = 2) as reply_cnt,
             (SELECT COUNT(*) FROM BOARD_LIKE_tbl WHERE board_idx = A.idx) as like1,
             (SELECT COUNT(*) FROM BOARD_SEE_tbl WHERE board_idx = A.idx) as see,
@@ -405,65 +404,53 @@ router.get('/set_like1/:idx/:id', setLog, async function(req, res, next) {
     res.send(arr);
 });
 
-
-router.get('/growth_list', setLog, async function(req, res, next) {
-    const pid = req.query.pid;
-    const baby_idx = req.query.baby_idx;
-    var page = req.query.page;
-
-    page = page * 20;
-
-    var arr = [];
+router.post('/id_pass_confirm', setLog, async function(req, res, next) {
+    const { id, pass1, idx } = req.body;
+    var dbPass = '';
+    var inPass = '';
 
     await new Promise(function(resolve, reject) {
-        var sql = `
-            SELECT
-            A.idx,
-            A.board_id,
-            A.id,
-            A.title,
-            A.memo,
-            A.name1,
-            A.filename0,
-            A.filename1,
-            A.filename2,
-            A.filename3,
-            A.filename4,
-            A.filename5,
-            A.filename6,
-            A.filename7,
-            A.filename8,
-            A.filename9,
-            A.created,
-            A.comment,
-            (SELECT COUNT(*) FROM BOARD_tbl WHERE parent_idx = A.idx AND step = 2) as reply_cnt,
-            (SELECT COUNT(*) FROM BOARD_LIKE_tbl WHERE board_idx = A.idx) as like1,
-            (SELECT COUNT(*) FROM BOARD_SEE_tbl WHERE board_idx = A.idx) as see,
-            (SELECT filename0 FROM MEMB_tbl WHERE id = A.id) as user_thumb
-            FROM
-            BOARD_tbl as A
-            WHERE step = 1
-            AND board_id = 'growth'
-            AND id = ?
-            AND baby_idx = ?
-            ORDER BY idx DESC
-            LIMIT ${page}, 20
-        `;
-
-        db.query(sql, [pid, baby_idx], function(err, rows, fields) {
-            // console.log(rows);
+        const sql = `SELECT PASSWORD(?) as pass1 FROM dual`;
+        db.query(sql, pass1, function(err, rows, fields) {
             if (!err) {
-                resolve(rows);
+                resolve(rows[0]);
             } else {
-                resolve(err);
+                console.log(err);
             }
         });
     }).then(function(data) {
-        arr = utils.nvl(data);
+        dbPass = data.pass1;
     });
-    res.send(arr);
-});
 
+    await new Promise(function(resolve, reject) {
+        const sql = `SELECT pass1 FROM BOARD_tbl WHERE idx = ? AND id = ?`;
+        db.query(sql, [idx, id], function(err, rows, fields) {
+            if (!err) {
+                resolve(rows[0]);
+            } else {
+                console.log(err);
+            }
+        });
+    }).then(function(data) {
+        if (!data) {
+            inPass = null;
+        } else {
+            inPass = data.pass1;
+        }
+    });
+
+    if (dbPass == inPass) {
+        res.send({
+            cnt: 1,
+        });
+    } else {
+        res.send({
+            cnt: 0,
+        });
+    }
+
+
+});
 
 router.get('/set_aricle_push/:parent_idx', setLog, async function(req, res, next) {
     var parent_idx = req.params.parent_idx;

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <title>올근</title>
+    <link rel="shortcut icon" href="#">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css"  integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/stylesheets/style.css">
+    <link rel="stylesheet" href="/stylesheets/jstree.css">
+    <script src='/javascripts/jquery-3.5.0.min.js'></script>
+</head>
+
+<script>
+function getPageLink(link, seg1, seg2) {
+    var tmp = link.split('?');
+    if (tmp.length == 1) {
+        link = `${tmp[0]}/${seg1}/${seg2}`;
+    } else {
+        link = `${tmp[0]}/${seg1}/${seg2}?${tmp[1]}`;
+    }
+    //파라메터를 세션에 넣어준다!
+    $.ajax({
+        url: '/crud/set_params_session',
+        method: 'get',
+        data: tmp[1],
+        dataType: "json",
+        success: function(res) {
+            if (res) {
+                location.href = link;
+            }                
+        }
+    });
+    //
+}
+
+</script>
+
+<body class='bg-light font-monospace'>
+
+    <div class='position-absolute top-0 w-100' style='bottom: 30px;'>
+        <div id='aside' class='position-absolute top-0 left-0 bottom-0 bg-white border-end overflow-auto' style='width: 250px;'>
+            <div class='w-100 hand d-flex align-items-center justify-content-center' style='height: 70px;'>
+                <a class='btn' href='/adm'><i class="bi bi-house me-1"></i>올근</a>
+            </div>
+<%
+    var target = '';
+    var active = '';
+    var m1 = '';
+    var m2 = '';
+    var i = -1;
+    var navTitle1 = '';
+    var navTitle2 = '';
+
+    for (row1 of global.menus) {
+        i++;
+        target = row1.title + i;
+
+        if (i == menu1) {
+            active = 'show';
+            m1 = 'text-primary fw-bolder';
+        } else {
+            active = '';
+            m1 = 'collapsed';
+        }
+
+%>
+            <div class='accordion accordion-flush' id='<%=row1.title%>'>
+                <div class='accordion-item'>
+                    <h2 class='accordion-header' id='<%=row1.title%>'>
+                        <button class='<%=m1%> accordion-button bg-white' style='box-shadow: none;' type='button' data-bs-toggle='collapse' data-bs-target='#<%=target%>' aria-expanded='false' aria-controls='<%=target%>'>
+                            <%=row1.title%>
+                        </button>
+                    </h2>
+
+                    <div id='<%=target%>' class='accordion-collapse collapse <%=active%>' aria-labelledby='<%=row1.title%>' data-bs-parent='<%=row1.title%>'>
+                        <div class='accordion-body p-0'>
+<%
+                        var j = -1;
+                        var id = '';
+                        for (row2 of row1.child) {
+                            j++;
+                            id = i + '_' + j;
+
+                            if (active == 'show' && j == menu2) {
+                                m2 = 'text-white bg-primary';
+                                navTitle1 = row1.title;
+                                navTitle2 = row2.title;
+                            } else {
+                                m2 = 'text-dark';
+                            }
+
+                            if (myinfo.level1 > 1) {
+                                for (tmp of global.showMenuLinkArr) {
+                                    if (row2.link.split('?')[0] == tmp) {
+%>
+                            <div id='<%=id%>' class='<%=m2%> w-100 text-start py-3 ps-4 menu2' onclick='getPageLink("<%=row2.link%>", "<%=i%>", "<%=j%>");'>
+                                <%=row2.title%>
+                            </div>
+<%
+                                    }
+                                }
+                            } else {
+%>
+                            <div id='<%=id%>' class='<%=m2%> w-100 text-start py-3 ps-4 menu2' onclick='getPageLink("<%=row2.link%>", "<%=i%>", "<%=j%>");'>
+                                <%=row2.title%>
+                            </div>
+<%
+                            }
+                        }
+
+%>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+<%
+    }
+
+%>
+
+        </div><!--//aside-->
+    </div>
+
+    <div class='position-absolute overflow-auto p-4' style='top: 0px; bottom: 0px; left: 250px; right: 0px;'>
+        <div class='text-secondary'><%=navTitle1%></div>
+        <h3 style='margin-top: -5px;'><%=navTitle2%></h3>

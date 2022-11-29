@@ -1,0 +1,165 @@
+<h2 class="mt-5">댓글</h2>
+
+<div id="reply" class="mb-3"></div>
+
+<div class="input-group mb-3">
+    <textarea id="add_memo" class="form-control" rows="3" placeholder="내용을 입력해주세요." aria-describedby="button-addon1"></textarea>
+    <button class="btn btn-outline-secondary" type="button" id="button-addon1" onclick="addReply();">댓글남기기</button>
+</div>
+  
+
+
+
+<script>
+getReply();
+
+function getReply() {
+    $.ajax({
+        url: '/adm/board/reply/<%=row.idx%>',
+        method: 'get',
+        dataType: "json",
+        success: function(res) {
+            console.log(res);
+            for (row of res) {
+                $("#reply").append(getReplyHTML(row.step, row.name1, row.memo, row.idx));
+            }
+
+            setTimeout(function() {
+                var height = $("#reply").height();
+                $("#reply").css("min-height", height);
+            }, 1000);
+        }
+    });
+}
+
+
+function addReply() {
+    var memo = $("#add_memo").val();
+
+    $.ajax({
+        url: '/crud/write?table=BOARD_tbl',
+        method: 'post',
+        data: { 
+            parent_idx: '<%=row.idx%>',
+            board_id: '<%=row.board_id%>',
+            id: '<%=myinfo.mid%>',
+            name1: '<%=myinfo.name1%>',
+            step: 2,
+            memo: memo,
+        },
+        dataType: "json",
+        success: function(res) {
+            console.log(res);
+            alert('입력되었습니다.');
+            $("#add_memo").val('');
+            $("#reply").append(getReplyHTML(2, '<%=myinfo.name1%>', memo, res.insertId));
+        }
+    });
+}
+
+function modifyReply(idx) {
+    var modify_memo = $("#modify_memo_" + idx).val();
+    $.ajax({
+        url: '/crud/write?table=BOARD_tbl',
+        method: 'post',
+        data: { 
+            idx: idx,
+            memo: modify_memo,
+        },
+        dataType: "json",
+        success: function(res) {
+            console.log(res);
+            $("#reply").html('');
+            getReply();
+        }
+    });
+
+}
+
+function deleteReply(idx) {
+    if (confirm("삭제하시겠습니까?")) {
+        var arr = [];
+        arr.push(idx);
+        $.ajax({
+            url: '/crud/delete?table=BOARD_tbl',
+            method: 'get',
+            data: { 
+                idx: arr
+            },
+            dataType: "json",
+            success: function(res) {
+                console.log(res);
+                $("#reply").html('');
+                getReply();
+            }
+        });
+    }
+    
+}
+
+function reReply(parent_idx) {
+    var re_memo = $("#re_memo_" + parent_idx).val();
+    $.ajax({
+        url: '/crud/write?table=BOARD_tbl',
+        method: 'post',
+        data: { 
+            parent_idx: parent_idx,
+            board_id: '<%=row.board_id%>',
+            id: '<%=myinfo.mid%>',
+            name1: '<%=myinfo.name1%>',
+            step: 3,
+            memo: re_memo,
+        },
+        dataType: "json",
+        success: function(res) {
+            console.log(res);
+            // $("#re_memo_" + parent_idx).val('');
+            // $("#node_" + parent_idx).after(getReplyHTML(3, '<%=myinfo.name1%>', re_memo, res.insertId));
+            // $('#re_' + parent_idx).hide();
+            $("#reply").html('');
+            getReply();
+        }
+    });
+}
+
+
+function getReplyHTML(step, name1, memo, idx) {
+    var gap = '';
+    var rere = `<button type="button" class="btn text-dark" onclick="$('#re_${idx}').show();">답글</button>`;
+    if (step == 3) {
+        gap = 'ms-4';
+        rere = '';
+    }
+    
+    var html = `
+        <div class="d-flex flex-row mb-4" id="node_${idx}">
+            <i class="bi bi-arrow-return-right mt-2 ${gap}"></i>
+            <div class="flex-column w-100 ps-2">
+                <div class='w-100 bg-white p-3' id="view_${idx}">
+                    <div class="d-flex flex-row mb-2">
+                        <div class="me-auto">${name1}</div>
+                        ${rere}
+                        <button type="button" class="btn text-primary" onclick="$('#view_${idx}').hide();$('#modify_${idx}').show();">수정</button>
+                        <button type="button" class="btn text-danger" onclick="deleteReply(${idx});">삭제</button>
+                    </div>                        
+                    <p class="mb-0">${memo}</p>
+                </div>
+                
+                <div class="input-group mt-2" id="modify_${idx}" style="display: none;">
+                    <textarea id="modify_memo_${idx}" class="form-control" rows="3" placeholder="내용을 입력해주세요.">${memo}</textarea>
+                    <button class="btn btn-outline-secondary" type="button" onclick="modifyReply(${idx});">수정하기</button>
+                    <button class="btn btn-outline-secondary" type="button" onclick="$('#view_${idx}').show();$('#modify_${idx}').hide();">취소</button>
+                </div>
+
+                <div class="input-group mt-2" id="re_${idx}" style="display: none;">
+                    <textarea id="re_memo_${idx}" class="form-control" rows="3" placeholder="내용을 입력해주세요." aria-describedby="button-addon3"></textarea>
+                    <button class="btn btn-outline-secondary" type="button" id="button-addon3" onclick="reReply(${idx});">댓글남기기</button>
+                </div>
+            </div>
+        </div>
+        
+    `;
+
+    return html;
+}
+</script>

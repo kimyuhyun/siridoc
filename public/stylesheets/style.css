@@ -1,3 +1,8 @@
+html {
+    min-width: 1400px;
+    overflow-x: auto;
+}
+
 .button_x {
     border: 0px;
     background: transparent;
@@ -7,4 +12,37 @@
 
 a {
     text-decoration: none;
+}
+
+.hand {
+    cursor: pointer;
+}
+
+#aside::-webkit-scrollbar {
+    width: 3px;
+    background-color: #fff;
+}
+
+#aside::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 3px;
+}
+
+.menu2 {
+    cursor: pointer;
+}
+.menu2:hover {
+    background: #f2f2f2;
+}
+
+
+
+.table-form th {
+    vertical-align: middle;
+    padding: 0%;
+}
+
+.table-form td {
+    vertical-align: middle;
+    
 }

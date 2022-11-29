@@ -1,0 +1,120 @@
+<%- include('header.html') %>
+
+
+
+<div class='d-flex flex-row mt-4'>
+    
+    <div class='card shadow mb-4 pe-4 me-5' style="min-width: 300px;">
+        <div class='card-body'>
+            <div id='tree'></div>
+        </div>
+    </div>
+
+   
+    <form method="POST" class="w-100" action="/crud/write?table=CODES_tbl">
+        <input name='idx' type="hidden" readonly required/>
+        <input name='return_url' type="hidden" value="/adm/codes/<%=menu1%>/<%=menu2%>" />
+        
+        <table class="table table-borderless table-sm table-form">
+            <tr>
+                <th width="100">코드</th>
+                <td><input name='code1' class='form-control' readonly required/></td>
+            </tr>
+    
+            <tr>
+                <th>코드명</th>
+                <td><input name='name1' class='form-control' required/></td>
+            </tr>
+    
+            <tr>
+                <th>정렬순서</th>
+                <td><input name='sort1' class='form-control' required/></td>
+            </tr>
+            <tr>
+                <td colspan="2" align="right">
+                    <button id="save" type="submit" class="btn btn-primary">저장</button>
+                </td>
+            </tr>
+        </table>
+
+        
+    </form>
+
+</div>
+
+<div id="btns" class="position-fixed" style="width: 70px; display: none;">
+    <button type="button" class="del btn btn-outline-dark btn-sm" onclick="delCode();">✕</button>
+    <button type="button" class="btn btn-outline-dark btn-sm" onclick="addCode();">+</button>
+</div>
+
+
+<script src='/javascripts/jstree.js'></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $('#tree').jstree({
+        plugins: ['crrm', 'dnd'],
+        core: {
+            data: <%- JSON.stringify(data)%>
+        },
+    });
+
+    $('#tree').on('ready.jstree', function() {
+        $("#tree").jstree("open_all");
+    });
+
+    $('#tree').bind('select_node.jstree', function(event, data) {
+        console.log(data.node);
+
+        if (data.node.id != 'root') {
+           // 노드를 선택했을 때 적용할 코드 작성
+            $("input[name='code1']").val(data.node.id);
+            $("input[name='name1']").val(data.node.text);
+
+            var tmp = data.node.data.split('||');
+            $("input[name='idx']").val(tmp[0]);
+            $("input[name='sort1']").val(tmp[1]);
+            $("#save").show();
+        } else {
+            $("input[name='code1']").val('root');
+            $("input[name='name1']").val('');
+            $("input[name='idx']").val('');
+            $("input[name='sort1']").val('');
+            $("#save").hide();
+        }
+
+        if (data.node.id.length < 8) {
+            var top = $('#' + data.node.id + '_anchor').offset().top - 0;
+            var left = $('#' + data.node.id + '_anchor').offset().left + 120;
+            
+            $("#btns").show();
+            $("#btns").css("top", top);
+            $("#btns").css("left", left);
+        } else {
+            $("#btns").hide();
+        }
+
+        if (data.node.id == 'root') {
+            $("#btns > .del").hide();
+        } else {
+            $("#btns > .del").show();
+        }
+
+    });
+
+});
+
+function addCode() {
+    var code1 = $("input[name='code1']").val();
+    location.href = `/crud/add_code?code1=${code1}&return_url=/adm/codes/<%=menu1%>/<%=menu2%>`;
+}
+
+function delCode() {
+    if (confirm("삭제하시겠습니까?")) {
+        var idx = $("input[name='idx']").val();
+        location.href = `/crud/del_code?idx=${idx}&table=CODES_tbl&return_url=/adm/codes/<%=menu1%>/<%=menu2%>`;
+    }
+}
+</script>
+
+
+<%- include('footer.html') %>

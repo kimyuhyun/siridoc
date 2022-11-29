@@ -1,0 +1,85 @@
+<table class="table table-borderless table-sm table-form">
+    <tr>
+        <th width="100">성함</th>
+        <td><%=row.name1%></td>
+    </tr>
+
+    <tr>
+        <th>생년월일</th>
+        <td><%=row.birth%></td>
+    </tr>
+
+    <tr>
+        <th>성별</th>
+        <td><%=row.gender==1?'남':'여'%></td>
+    </tr>
+</table>
+
+<h5 class="text-black-50">측정데이터</h5>
+
+<table class="table table-striped" style="font-size: 14px;">
+    <tr>
+        <th class="text-center">순번</th>
+        <th class="text-center">나이</th>
+        <th class="text-center">결과</th>
+        <th class="text-center">종아리</th>
+        <th class="text-center">악력</th>
+        <th class="text-center">5회스쿼트</th>
+        <th class="text-center">측정일</th>
+    </tr>
+<% 
+    var i = arr.length;
+    for (row of arr) {
+%>
+    <tr>
+        <td class="text-center"><%=i%></td>
+        <td class="text-center"><%=row.age%></td>
+<%
+        if (row.status == 1) {
+            __append('<td class="text-center text-success">근감소 전단계</td>');
+        } else if (row.status == 2) {
+            __append('<td class="text-center text-warning">보통 수준의 근감소증</td>');
+        } else if (row.status == 3) {
+            __append('<td class="text-center text-danger">심각 수준의 근감소증</td>');
+        } else {
+            __append('<td class="text-center">정상</td>');
+        }
+%>
+        <td class="text-center">
+<%
+            __append(`${row.jongari}cm`);
+            if (row.is_flag1 == 0) {
+                __append(' <span class="text-success">O</span>');
+            } else {
+                __append(' <span class="text-danger">X</span>');
+            }
+%>
+        </td>
+        <td class="text-center">
+<%
+            __append(`${row.akruk}kg`);
+            if (row.is_flag2 == 0) {
+                __append(' <span class="text-success">O</span>');
+            } else {
+                __append(' <span class="text-danger">X</span>');
+            }
+%>            
+        </td>
+        <td class="text-center">
+<%
+            __append(`${row.squat}sec`);
+            if (row.is_flag3 == 0) {
+                __append(' <span class="text-success">O</span>');
+            } else {
+                __append(' <span class="text-danger">X</span>');
+            }
+%>             
+        </td>
+        <td class="text-center"><%=row.created.split(' ')[0]%></td>
+    </tr>
+
+<% 
+        i--;
+    }
+%>
+</table>

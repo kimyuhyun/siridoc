@@ -11,7 +11,7 @@ const logger = require('morgan');
 const db = require('./db');
 
 const indexRouter = require('./routes/index');
-const adminRouter = require('./routes/admin');
+const admRouter = require('./routes/adm');
 const crudRouter = require('./routes/crud');
 const apiCrudRouter = require('./routes/api_crud');
 const analyzerRouter = require('./routes/analyzer');
@@ -22,6 +22,7 @@ const termsRouter = require('./routes/terms');
 const familyRouter = require('./routes/family');
 const muscleRouter = require('./routes/muscle');
 const muscleCheckRouter = require('./routes/muscle_check');
+
 
 const app = express();
 
@@ -55,7 +56,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/data', express.static('data'));
 
 app.use('/', indexRouter);
-app.use('/admin', adminRouter);
+app.use('/adm', admRouter);
 app.use('/crud', crudRouter);
 app.use('/api_crud', apiCrudRouter);
 app.use('/analyzer', analyzerRouter);
@@ -66,6 +67,10 @@ app.use('/terms', termsRouter);
 app.use('/family', familyRouter);
 app.use('/muscle', muscleRouter);
 app.use('/muscle_check', muscleCheckRouter);
+app.use('/new_muscle_check', require('./routes/new_muscle_check'));
+app.use('/patient', require('./routes/patient'));
+
+
 
 
 
@@ -86,6 +91,7 @@ app.use(function(err, req, res, next) {
     res.locals.error = req.app.get('env') === 'development' ? err : {};
     app.locals.hostname = process.env.HOST_NAME;
 
+    console.log(err);
 
     // render the error page
     res.status(err.status || 500);

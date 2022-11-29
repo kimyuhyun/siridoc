@@ -1,0 +1,212 @@
+<%-include('header.html')%>
+
+<div class='card shadow mb-5'>
+    <div class='card-body'>
+        <form name="frm1" method="GET" action="/crud/delete" onsubmit="return false;">
+            <input type="hidden" name="table" value="MEMB_tbl"/>
+            <input type="hidden" name="return_url" value="/adm/user/<%=data.pageNum%>/<%=menu1%>/<%=menu2%>?search=<%=data.search%>&orderby=<%=data.orderby%>"/>
+
+            <div class="d-flex flex-row justify-content-end mb-2">
+                <div class="input-group w-50">
+                    <input type="text" id="search_query" class="form-control" placeholder="검색어를 입력해주세요" value="<%=data.search%>" onkeyup="enterkey();">
+                    <button class="btn btn-primary" type="button" onclick="search()" >검색</button>
+                    <a href="/adm/user/1/<%=menu1%>/<%=menu2%>" class="btn btn-outline-dark" type="button">목록</a>
+                </div>
+            </div>
+
+            <table class="table bg-white">
+                <colgroup>
+                    <col width="40px" />
+                    <col width="85px" />
+                    <col width="60px" />
+                    <col width="120px" />
+                    <col width="*" />
+                    <col width="100px" />
+                    <col width="100px" />
+                </colgroup>
+                <thed>
+                    <tr>
+                        <th class="text-center" ><input type="checkbox" onclick="allCheck(this)"></th>
+                        <th class="text-center text-nowrap">
+                            번호
+                            <a class="<%=data.orderby == 'idx DESC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('idx DESC');"><i class="bi bi-arrow-down"></i></a>
+                            <a class="<%=data.orderby == 'idx ASC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('idx ASC');"><i class="bi bi-arrow-up"></i></a>
+                        </th>
+                        <th class="text-center text-nowrap">사진</th>
+                        <th class="text-center text-nowrap">
+                            이름
+                            <a class="<%=data.orderby == 'name1 DESC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('name1 DESC');"><i class="bi bi-arrow-down"></i></a>
+                            <a class="<%=data.orderby == 'name1 ASC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('name1 ASC');"><i class="bi bi-arrow-up"></i></a>
+                        </th>
+                        <th class="text-nowrap">
+                            아이디
+                            <a class="<%=data.orderby == 'id DESC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('id DESC');"><i class="bi bi-arrow-down"></i></a>
+                            <a class="<%=data.orderby == 'id ASC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('id ASC');"><i class="bi bi-arrow-up"></i></a>
+                        </th>
+                        <th class="text-center text-nowrap">
+                            등록일
+                            <a class="<%=data.orderby == 'created DESC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('created DESC');"><i class="bi bi-arrow-down"></i></a>
+                            <a class="<%=data.orderby == 'created ASC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('created ASC');"><i class="bi bi-arrow-up"></i></a>
+                        </th>
+                        <th class="text-center text-nowrap">
+                            수정일
+                            <a class="<%=data.orderby == 'modified DESC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('modified DESC');"><i class="bi bi-arrow-down"></i></a>
+                            <a class="<%=data.orderby == 'modified ASC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('modified ASC');"><i class="bi bi-arrow-up"></i></a>
+                        </th>
+                    </tr>
+                </thed>
+                <tbody>
+                    <% for (row of data.list) { %>        
+                    <tr>
+                        <td class="text-center"><input type="checkbox" name="idx[]" value="<%= row.idx %>"></td>
+                        <td class="text-center text-nowrap"><%=row.idx%></td>
+                        <td class="text-center p-0">
+                            <% if (row.filename0) { %>
+                            <img src="<%=row.filename0%>" width="40" height="40"/>
+                            <% } %>
+                        </td>
+                        <td class="text-center text-nowrap"><%=row.name1%></td>
+                        <td>
+                            <div  class="d-flex flex-row align-items-center">
+                                <div class="text-truncate" style="max-width: 500px;">
+                                    <a
+                                        href="Javascript:void(0)"
+                                        data-bs-toggle="modal" data-bs-target="#staticBackdrop"
+                                        onclick="openPopup('/crud/write', '<%=row.idx%>');">
+                                        <%=row.id%>
+                                    </a>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center text-nowrap"><%=row.created%></td>
+                        <td class="text-center text-nowrap"><%=row.modified%></td>
+                    </tr>
+                    <% } %>
+                </tbody>
+            </table>
+            <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-danger" onclick="del();">삭제</button>
+                <button
+                    type="button" class="btn btn-primary"
+                    data-bs-toggle="modal" data-bs-target="#staticBackdrop"
+                    onclick="openPopup('/crud/write', '');">등록</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<% if (data.list.length != 0) { %>
+<div class="d-flex justify-content-center">
+    <ul class="pagination">
+        <li class="page-item <% if(data.pnPrev == 0) { %> disabled <% } %>">
+            <a class="page-link" <% if (data.pageNum > 1) { %> href="Javascript:page(<%=data.pnPrev%>);" <% } %>>
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        <% for (var i = data.pnStart; i <= data.pnEnd; i++) { %>
+        <li class="page-item <% if(i == data.pageNum) { %> active <% } %>">
+            <a class="page-link" href="Javascript:page(<%=i%>);"><%=i%></a>
+        </li>
+        <% } %>
+        <li class="page-item <% if(data.pnNext == 0) { %> disabled <% } %>">
+            <a class="page-link" <% if (data.pageNum < data.pnTotal){ %> href="Javascript:page(<%=data.pnNext%>);" <% } %>>
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+    </ul>
+</div>
+<% } %>
+
+<%- include('footer.html') %>
+
+
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-light" id="write_form">
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="$('#submit').trigger('click');">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-light" id="write_form">
+                
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="$('#submit').trigger('click');">저장</button>
+            </div>
+        </div>
+    </div> -->
+</div>
+
+
+<script>
+function allCheck(obj) {
+    $("input[name='idx[]']").prop('checked', obj.checked);
+}
+
+function enterkey() {
+    if (window.event.keyCode == 13) {
+       // 엔터키가 눌렸을 때 실행하는 반응
+        search();
+    }
+}
+
+function search() {
+    var search = $("#search_query").val();
+    location.href = '/adm/user/1/<%=menu1%>/<%=menu2%>?search=' + search + '&orderby=<%=data.orderby%>';
+
+}
+
+function orderby(orderby) {
+    location.href = '/adm/user/1/<%=menu1%>/<%=menu2%>?search=<%=data.search%>&orderby=' + orderby;
+}
+
+function page(page) {
+    location.href = '/adm/user/' + page + '/<%=menu1%>/<%=menu2%>?search=<%=data.search%>&orderby=<%=data.orderby%>';
+}
+
+function del() {
+    if ($("input:checkbox[name='idx[]']:checked").length <= 0) {
+        alert('체크된 항목이 없습니다.');
+        return;
+    }
+
+    if (confirm('삭제하시겠습니까?')) {
+        document.frm1.submit();
+    }
+}
+
+function openPopup(url, idx) {
+    var return_url = '/adm/user/1/<%=menu1%>/<%=menu2%>?search=<%=data.search%>&orderby=<%=data.orderby%>';
+    
+    $.ajax({
+        url: url,
+        method: 'get',
+        data: { 
+            idx: idx,
+            return_url: return_url,
+            table: 'MEMB_tbl',
+            view: 'user',
+        },
+        dataType: "html",
+        success: function(result) {
+            $("#write_form").html(result);
+        }
+    });
+
+}
+</script>

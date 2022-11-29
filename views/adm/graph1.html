@@ -1,0 +1,57 @@
+<%- include('header.html') %>
+
+<div id='graph' style='width: 100%; height: 500px;'></div>
+<table id='datatable' style='display: none;'>
+    <tr>
+        <td>일자</td>
+        <td>총방문자</td>
+        <td>재방문자</td>
+        <td>신규방문자</td>
+    </tr>
+<%
+    for (row of rows) {
+%>
+    <tr>
+        <td><%=row.date%></td>
+        <td><%=row.total%></td>
+        <td><%=row.re%></td>
+        <td><%=row.new%></td>
+    </tr>
+<%
+    }
+%>
+</table>
+<%- include('footer.html') %>
+
+
+
+
+<script src='https://code.highcharts.com/highcharts.js'></script>
+<script src='https://code.highcharts.com/modules/data.js'></script>
+<script src='https://code.highcharts.com/modules/exporting.js'></script>
+<script>
+$(document).ready(function() {
+    $('#graph').highcharts({
+        data: {
+            table: 'datatable'
+        },
+        chart: {
+            type: 'spline',
+        },
+        title: {
+            text: "전체방문자",
+        },
+        yAxis: {
+            labels: {
+                formatter: function() {
+                    return this.value;
+                }
+            },
+            allowDecimals: false,
+            title: {
+                text: '명'
+            }
+        },
+    });
+});
+</script>

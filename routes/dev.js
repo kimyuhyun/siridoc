@@ -1,13 +1,29 @@
 const express = require('express');
 const router = express.Router();
-const bodyParser = require('body-parser');
 const fs = require('fs');
 const db = require('../db');
 const utils = require('../Utils');
 const moment = require('moment');
-const requestIp = require('request-ip');
-const commaNumber = require('comma-number');
+const menus = require('../menu');
 
+global.menus = menus;
+global.showMenuLinkArr;
+
+async function checking(req, res, next) {
+    if (!req.session.mid) {
+        res.redirect('/adm/login');
+        return;
+    }
+
+    var sql = `SELECT show_menu_link FROM GRADE_tbl WHERE level1 = ?`;
+    var params = [req.session.level1];
+    var arr = await utils.queryResult(sql, params);
+    console.log(arr[0].show_menu_link);
+    if (arr) {
+        global.showMenuLinkArr = arr[0].show_menu_link.substr(1, 9999).split(',');
+    }
+    next();
+}
 
 async function setLog(req, res, next) {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -71,7 +87,6 @@ router.get('/', setLog, async function(req, res, next) {
     // var params = [];
     // var arr = await utils.queryResult(sql, params);
     // console.log(arr);
-
 
     res.send('api');
 });

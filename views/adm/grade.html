@@ -1,0 +1,110 @@
+<%- include('header.html') %>
+<div class='card shadow mb-5'>
+    <div class='card-body'>
+        <form name="frm1" method="GET" action="/crud/delete" onsubmit="return false;">
+            <input type="hidden" name="table" value="GRADE_tbl"/>
+            <input type="hidden" name="return_url" value="/adm/grade/<%=menu1%>/<%=menu2%>"/>
+
+            <table class="table bg-white">
+                <colgroup>
+                    <col width="40px" />
+                    <col width="100px" />
+                    <col width="100px" />
+                    <col width="*" />
+                    <col width="100px" />
+                    <col width="100px" />
+                </colgroup>
+                <thed>
+                    <tr>
+                        <th class="text-center" ><input type="checkbox" onclick="allCheck(this)"></th>
+                        <th class="text-center text-nowrap">번호</th>
+                        <th class="text-center text-nowrap">권한레벨</th>
+                        <th class="text-nowrap">권한명</th>
+                        <th class="text-center text-nowrap">등록일</th>
+                        <th class="text-center text-nowrap">수정일</th>
+                    </tr>
+                </thed>
+                <tbody>
+                    <% for (row of list) { %>        
+                    <tr>
+                        <td class="text-center"><input type="checkbox" name="idx[]" value="<%=row.idx%>"></td>
+                        <td class="text-center text-nowrap"><%=row.idx %></td>
+                        <td class="text-center text-nowrap"><%=row.level1%></td>
+                        <td class="text-nowrap">
+                            <a
+                                href="Javascript:void(0)"
+                                data-bs-toggle="modal" data-bs-target="#staticBackdrop"
+                                onclick="openPopup('/crud/write', '<%=row.idx%>');">
+                                <%=row.name1%>
+                            </a>
+                            
+                        </td>
+                        <td class="text-center text-nowrap"><%=row.created %></td>
+                        <td class="text-center text-nowrap"><%=row.modified %></td>
+                    </tr>
+                    <% } %>
+                </tbody>
+            </table>
+            <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-danger" onclick="del();">삭제</button>
+                <button
+                    type="button" class="btn btn-primary"
+                    data-bs-toggle="modal" data-bs-target="#staticBackdrop"
+                    onclick="openPopup('/crud/write', '');">등록</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<%- include('footer.html') %>
+
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-light" id="write_form">
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="$('#submit').trigger('click');">저장</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+function del() {
+    if ($("input:checkbox[name='idx[]']:checked").length <= 0) {
+        alert('체크된 항목이 없습니다.');
+        return;
+    }
+
+    if (confirm('삭제하시겠습니까?')) {
+        document.frm1.submit();
+    }
+}
+
+function openPopup(url, idx) {
+    var return_url = '/adm/grade/<%=menu1%>/<%=menu2%>';
+    $.ajax({
+        url: url,
+        method: 'get',
+        data: { 
+            idx: idx,
+            return_url: return_url,
+            table: 'GRADE_tbl',
+            view: 'grade',
+        },
+        dataType: "html",
+        success: function(result) {
+            $("#write_form").html(result);
+        }
+    });
+}
+
+</script>
+
+

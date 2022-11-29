@@ -1,0 +1,169 @@
+<form name="frm2" method="post" action="/crud/write?table=MEMB_tbl">
+    <input type="hidden" name="return_url" value="<%=return_url%>"/>
+    <input type="hidden" name="idx" value="<%=row.idx%>"/>
+            
+    <table class="table table-borderless table-sm table-form">
+        <tr>
+            <th width="100">아이디</th>
+            <td><input name='id' class='form-control' required value="<%=row.id%>" <%=row.id == null ? '' : 'readonly' %>/></td>
+        </tr>
+
+        <tr>
+            <th>패스워드</th>
+            <td><input name='pass1' type="password" class='form-control' placeholder="변경시에만 입력"/></td>
+        </tr>
+
+        <tr>
+            <th>이름</th>
+            <td><input name='name1' class='form-control' required value="<%=row.name1%>"/></td>
+        </tr>
+
+        <tr>
+            <th>권한</th>
+            <td>
+                <select class='form-select' name="level1" id="level1" required></select>
+            </td>
+        </tr>
+
+        <tr>
+            <th>사진</th>
+            <td>
+                <div class="me-3 mt-3" style="position: relative; width: 100px; height: 100px;" ondragenter="dragEnter(0, event)" ondragleave="dragLeave(0, event)" ondragover="dragOver(event)" ondrop="drop(0, event)">
+<%
+        if (row.filename0) {
+%>
+                    <label for="file-input0">
+                        <img id="filename0_IMG" src="<%=row.filename0%>" class="img-thumbnail p-0" style="cursor: hand; width: 100px; height: 100px;" onclick="imageWindow('<%=row.filename0%>');"/>
+                    </label>
+                    <input id="file-input0" style="display: none;" type="file" onchange="upload(this, 0)"/>
+                    <img id="filename0_X" onclick="deleteImage(0)" src="/images/photo_x.png" class="X" style="position: absolute; cursor: pointer; top: -10px; right: -9px;" width="25" height="25">
+                    <input type="hidden" id="filename0" name="filename0" value="<%=row.filename0%>" />
+<%
+        } else {
+%>
+                    
+                    <label for="file-input0">
+                        <img id="filename0_IMG" src="/images/no-img2.png" class="img-thumbnail p-0" style="cursor: hand;  width: 100px; height: 100px;"/>
+                    </label>
+                    <input id="file-input0" style="display: none;" type="file" onchange="upload(this, 0)"/>
+                    <img id="filename0_X" onclick="deleteImage(0)" src="/images/photo_x.png" class="X" style="position: absolute; cursor: pointer; top: -10px; right: -9px; display: none;" width="25" height="25">
+                    <input type="hidden" id="filename0" name="filename0"/>
+<%
+        }
+%>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+           
+    </table>
+    <input type="submit" id="submit" style="display: none;"/>
+</form>
+
+
+<script>
+$(document).ready(function() {
+    $.ajax({
+        type: 'GET',
+        url: '/crud/iterator',
+        data: {
+            table: 'GRADE_tbl',
+            srot1: 'level1 ASC',
+        },
+        dataType: "json",
+        success: function(res) {
+            console.log(res);
+            for (row of res) {
+                $("#level1").append(`
+                    <option value="${row.level1}">${row.name1}</option>
+                `);
+            }
+
+            $("#level1").val("<%=row.level1%>").prop("selected", true);
+
+        }, err: function(err) {
+            console.log(err);
+        }
+    });
+
+});
+
+function dragEnter(i, e) {
+    console.log(i, "드래그 요소가 들어왔을떄", e);
+    $("#filename"+i+"_IMG").addClass("bg-dark");
+}
+function dragLeave(i, e) {
+    console.log(i, "드래그 요소가 나갔을때");
+    $("#filename"+i+"_IMG").addClass("img-thumbnail");
+    $("#filename"+i+"_IMG").removeClass("bg-dark");
+}
+function dragOver(e) {
+    // console.log("draging");
+    e.stopPropagation();
+    e.preventDefault();
+}
+
+function drop(i, e) {
+    console.log("드래그한 항목을 떨어뜨렸을때", e);
+    e.preventDefault();
+    var file = e.dataTransfer.files[0];
+
+    var formData = new FormData();
+    formData.append("upload_file", file, file.name);
+
+    $.ajax({
+        type: 'POST',
+        url: '<%=process.env.IMAGE_SERVER%>',
+        processData: false,
+        contentType: false,
+        data: formData,
+        dataType: "json",
+        success: function(res) {
+            console.dir(res);
+            $("#filename"+i).val(res.url);
+            $("#filename"+i+"_IMG").attr("src", res.url);
+            $("#filename"+i+"_IMG").attr("onclick", "imageWindow('"+res.url+"')");
+            $("#filename"+i+"_X").show();
+        }, err: function(err) {
+            console.log(err);
+        }
+    });
+}
+
+function upload(obj, i) {
+    var formData = new FormData();
+	formData.append("upload_file", $(obj)[0].files[0], $(obj)[0].files[0].name);
+
+    $.ajax({
+        type: 'POST',
+        url: '<%=process.env.IMAGE_SERVER%>',
+        processData: false,
+        contentType: false,
+        data: formData,
+        dataType: "json",
+        success: function(res) {
+            console.dir(res);
+            $("#filename"+i).val(res.url);
+            $("#filename"+i+"_IMG").attr("src", res.url);
+            $("#filename"+i+"_IMG").attr("onclick", "imageWindow('"+res.url+"')");
+            $("#filename"+i+"_X").show();
+        }, err: function(err) {
+            console.log(err);
+        }
+    });
+}
+
+
+function deleteImage(i) {
+    var path = $("#filename"+i+"_IMG").attr("src");
+    $("#filename"+i).val("");
+    $("#filename"+i+"_IMG").attr("src", "/images/no-img2.png");
+    $("#filename"+i+"_IMG").attr("onclick", "");
+    $("#filename"+i+"_X").hide();
+}
+
+function imageWindow(url) {
+    window.open(url, 'imageWindow',"width="+screen.width+", height="+screen.height+", toolbar=no, menubar=no, scrollbars=no, resizable=no, top=0, left=0");
+}
+</script>

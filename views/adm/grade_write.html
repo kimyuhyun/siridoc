@@ -1,0 +1,90 @@
+<form name="frm2" method="post" action="/crud/write?table=GRADE_tbl" onsubmit="return generate();">
+    <input type="hidden" name="return_url" value="<%=return_url%>"/>
+    <input type="hidden" name="idx" value="<%=row.idx%>"/>
+    <input type="hidden" name="show_menu_link" value="<%=row.show_menu_link%>"/>
+            
+    <table class="table table-borderless table-sm table-form">
+        <tr>
+            <th width="100">권한레벨</th>
+            <td><input name='level1' class='form-control' required value="<%=row.level1%>"/></td>
+        </tr>
+
+        <tr>
+            <th>권한명</th>
+            <td><input name='name1' class='form-control' required value="<%=row.name1%>"/></td>
+        </tr>
+    </table>
+
+    <table class="mt-5 table table-borderless table-sm table-form">
+        <tr>
+            <th colspan="2">접근권한설정</th>
+        </tr>
+
+<%
+    var count = 0;
+    for (row1 of global.menus) {
+        if (row1.title) {
+%>
+        <tr>
+            <td><%=row1.title%></td>
+            <td>
+<%
+            for (row2 of row1.child) {
+%>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input show_menu" type="checkbox" id="show_menu<%=count%>" value="<%=row2.link%>">
+                        <label class="form-check-label" for="show_menu<%=count%>"><%=row2.title%></label>
+                    </div>
+<%                
+                count++;
+            }
+%>
+            </td>
+        </tr>
+<%
+        }
+    }
+%>
+           
+    </table>
+    <input type="submit" id="submit" style="display: none;"/>
+</form>
+
+
+<script>
+$(document).ready(function() {
+    //여기서 체크박스 값 세팅 해준다.
+    $(".show_menu").prop('checked', false);
+    var tmpArr = '<%=row.show_menu_link%>'.substr(1,9999).split(",");
+    
+    $(".show_menu").each(function() {
+        var val1 = $(this).val().split('?')[0];
+        for (tmp of tmpArr) {
+            var val2 = tmp.split('?')[0];
+            console.log(val1 + ' : ' + val2);
+            if (val1 == val2) {
+                $(this).prop('checked', true);
+                continue;
+            }
+        }
+    });
+    //
+});
+
+function generate() {
+    //체크박스는 제이쿼리로 처리하자!!
+    var showMenuList = '';
+    $(".show_menu").each(function() {
+        if (this.checked) {
+            var tmp = $(this).val().split('?')[0];
+            showMenuList += "," + tmp;
+        }
+    });
+    //
+
+    $("input[name='show_menu_link']").val(showMenuList);
+
+    return true;
+}
+
+</script>
