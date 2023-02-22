@@ -230,7 +230,8 @@ router.post('/link_upload', async function(req, res, next) {
         method: 'GET',
         responseType: 'arraybuffer'
     });
-    const extension = path.extname(urlLink);
+    var extension = path.extname(urlLink);
+    extension = extension.split('?')[0];
     
     //Create form data
     const form = new FormData();
@@ -242,7 +243,7 @@ router.post('/link_upload', async function(req, res, next) {
     
     //Submit form
     const result = await axios({
-        url: `${process.env.IMAGE_SERVER}`, 
+        url: `${process.env.HOST_NAME}/file_upload/file_upload`, 
         method: 'POST',
         data: form, 
         headers: { "Content-Type": `multipart/form-data; boundary=${form._boundary}` }

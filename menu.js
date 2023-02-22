@@ -21,7 +21,7 @@ const menu = [
         ],
     },
     {
-        title: "추천등록",
+        title: "상품-병원-블로그등록",
         child: [
             {
                 title: "건강기능식품",
@@ -30,6 +30,10 @@ const menu = [
             {
                 title: "건강보조기",
                 link: "/crud/list/health_mac?table=HEALTH_MAC_tbl",
+            },
+            {
+                title: "건강블로그",
+                link: "/crud/list/health_blog?table=HEALTH_BLOG_tbl",
             },
             {
                 title: "병원",

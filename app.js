@@ -34,7 +34,7 @@ app.use(session({
     saveUninitialized: true,
     store: new MySQLStore(db.connAccount),
     cookie: {
-        maxAge: 24000 * 60 * 60 // 쿠키 유효기간 24시간
+        maxAge: 24000 * 3600 // 쿠키 유효기간 24시간
     }
 }));
 
@@ -42,8 +42,8 @@ app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'ejs');
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+// app.set('views', path.join(__dirname, 'views'));
+// app.set('view engine', 'jade');
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -69,6 +69,7 @@ app.use('/muscle', muscleRouter);
 app.use('/muscle_check', muscleCheckRouter);
 app.use('/new_muscle_check', require('./routes/new_muscle_check'));
 app.use('/patient', require('./routes/patient'));
+app.use('/file_upload', require('./routes/file_upload'));
 
 
 
@@ -76,15 +77,15 @@ app.use('/patient', require('./routes/patient'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-    // res.status(404).send('페이지가 없습니다.');
-    // res.status(500).send('500 에러');
+    res.status(404).send('페이지가 없습니다.');
+    res.status(500).send('500 에러');
     next(createError(404));
 });
 
 // error handler
 app.use(function(err, req, res, next) {
-    // console.log('ENV', process.env.NODE_ENV);
-    // console.log('ENV', req.app.get('env'));
+    console.log('ENV', process.env.NODE_ENV);
+    console.log('ENV', req.app.get('env'));
 
     // set locals, only providing error in development
     res.locals.message = err.message;

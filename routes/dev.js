@@ -85,8 +85,9 @@ router.get('/', setLog, async function(req, res, next) {
 
     // var sql = ``;
     // var params = [];
-    // var arr = await utils.queryResult(sql, params);
-    // console.log(arr);
+    // var resultArr = await utils.queryResult(sql, params);
+    // var resultObj = resultArr[0];
+    // console.log(resultObj);
 
     res.send('api');
 });

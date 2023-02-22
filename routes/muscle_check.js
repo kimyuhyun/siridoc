@@ -4,27 +4,34 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const db = require('../db');
 const utils = require('../Utils');
+const jwt = require('../jwt-util');
 const moment = require('moment');
 const requestIp = require('request-ip');
 const commaNumber = require('comma-number');
 
 
 async function setLog(req, res, next) {
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    // const token = req.headers.authorization.split('Bearer ')[1]; // header에서 access token을 가져옵니다.
+    // const result = jwt.verify(token); // token을 검증합니다.
+    // if (!result.ok) {   // 검증에 실패하거나 토큰이 만료되었다면 클라이언트에게 메세지를 담아서 응답합니다.
+    //     res.send({
+    //         code: 0,
+    //         msg: result.message,
+    //     });
+    //     return;
+    // }
 
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     var sql = `SELECT visit FROM ANALYZER_tbl WHERE ip = ? ORDER BY idx DESC LIMIT 0, 1`;
     var params = [ip];
     var rows = await utils.queryResult(sql, params);
-
     var cnt = 1;
     if (rows[0]) {
         var cnt = rows[0].visit + 1;
     }
-
     sql = `INSERT INTO ANALYZER_tbl SET ip = ?, agent = ?, visit = ?, created = NOW()`;
     params = [ip, req.headers['user-agent'], cnt];
-    var result = await utils.queryResult(sql, params);
-
+    await utils.queryResult(sql, params);
     //4분이상 것들 삭제!!
     fs.readdir('./liveuser', async function(err, filelist) {
         for (file of filelist) {
@@ -33,7 +40,7 @@ async function setLog(req, res, next) {
                     try {
                         var tmp = data.split('|S|');
                         moment.tz.setDefault("Asia/Seoul");
-                        var connTime = moment.unix(tmp[0] / 1000).format('YYYY-MM-DD HH:mm:ss');
+                        var connTime = moment.unix(tmp[0] / 1000).format('YYYY-MM-DD HH:mm');
                         var minDiff = moment.duration(moment(new Date()).diff(moment(connTime))).asMinutes();
                         if (minDiff > 4) {
                             fs.unlink('./liveuser/' + file, function(err) {

@@ -2,7 +2,7 @@ const fs = require('fs');
 const db = require('./db');
 const requestIp = require('request-ip');
 const axios = require('axios');
-const crypto = require('crypto');
+
 
 class Utils {
     ToFloat(number){
@@ -220,13 +220,14 @@ class Utils {
     async queryResult(sql, params) {
         var arr = [];
         await new Promise(function(resolve, reject) {
-            db.query(sql, params, function(err, rows, fields) {
+            var query = db.query(sql, params, function(err, rows, fields) {
                 if (!err) {
                     resolve(rows);
                 } else {
                     reject(err);
                 }
             });
+            console.log(query.sql);
         }).then(async function(data) {
             arr = data;
         }).catch(function(reason) {
@@ -346,6 +347,10 @@ class Utils {
                 postTime = time;
         }
         return postTime;
+    }
+
+    replaceAll(str, searchStr, replaceStr) {
+        return str.split(searchStr).join(replaceStr);
     }
 }
 

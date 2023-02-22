@@ -49,3 +49,13 @@ function util_convert_to_hangle(time) {
 
 	return postTime;
 }
+
+function replaceAll(str, searchStr, replaceStr) {
+	return str.split(searchStr).join(replaceStr);
+}
+
+function nl2br(obj) {
+    var tmp = replaceAll(obj.value, '\n', '');
+    tmp = replaceAll(tmp, '\r', '');
+    $(obj).val(tmp);
+}

@@ -32,6 +32,7 @@
                     <col width="40px" />
                     <col width="85px" />
                     <col width="60px" />
+                    <col width="100px" />
                     <col width="*" />
                     <col width="100px" />
                     <col width="100px" />
@@ -45,8 +46,9 @@
                             <a class="<%=data.orderby == 'idx ASC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('idx ASC');"><i class="bi bi-arrow-up"></i></a>
                         </th>
                         <th class="text-center text-nowrap">썸네일</th>
+                        <th class="text-center text-nowrap">브랜드</th>
                         <th class="text-center text-nowrap">
-                            제목
+                            상품명
                             <a class="<%=data.orderby == 'name1 DESC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('name1 DESC');"><i class="bi bi-arrow-down"></i></a>
                             <a class="<%=data.orderby == 'name1 ASC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('name1 ASC');"><i class="bi bi-arrow-up"></i></a>
                         </th>
@@ -72,6 +74,7 @@
                             <img src="<%=row.filename0%>" width="40" height="40"/>
                             <% } %>
                         </td>
+                        <td class="text-center text-nowrap"><%=row.brand%></td>
                         <td>
                             <div class="d-flex flex-row align-items-center">
                                 <div class="text-truncate" style="max-width: 500px;">
@@ -202,6 +205,4 @@ function openPopup(url, idx) {
     });
 
 }
-
-
 </script>

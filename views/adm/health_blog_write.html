@@ -4,18 +4,12 @@
         
     <table class="table table-borderless table-sm table-form">
         <tr>
-            <th width="100">브랜드</th>
-            <td><input name='brand' class='form-control' required value="<%=row.brand%>"/></td>
-        </tr>
-
-        <tr>
-            <th>상품명</th>
+            <th width="100">제목</th>
             <td><input name='name1' class='form-control' required value="<%=row.name1%>"/></td>
         </tr>
-
         <tr>
             <th>설명</th>
-            <td><input name='desc1' class='form-control' required value="<%=row.desc1%>"/></td>
+            <td><textarea name='desc1' class='form-control' onkeyup="nl2br(this)" required ><%=row.desc1%></textarea></td>
         </tr>
 
         <tr>
@@ -140,29 +134,6 @@ function drop(i, e) {
 }
 
 
-function upload(obj, i) {
-    var formData = new FormData();
-	formData.append("upload_file", $(obj)[0].files[0], $(obj)[0].files[0].name);
-
-    $.ajax({
-        type: 'POST',
-        url: '<%=process.env.IMAGE_SERVER%>',
-        processData: false,
-        contentType: false,
-        data: formData,
-        dataType: "json",
-        success: function(res) {
-            console.dir(res);
-            $("#filename"+i).val(res.url);
-            $("#filename"+i+"_IMG").attr("src", res.url);
-            $("#filename"+i+"_IMG").attr("onclick", "imageWindow('"+res.url+"')");
-            $("#filename"+i+"_X").show();
-        }, err: function(err) {
-            console.log(err);
-        }
-    });
-}
-
 
 function deleteImage(i) {
     if (confirm("삭제하시겠습니까?")) {
@@ -179,7 +150,10 @@ function imageWindow(url) {
     $("#zoom_img").show();
 
     // window.open(url, 'imageWindow',"width="+screen.width+", height="+screen.height+", toolbar=no, menubar=no, scrollbars=no, resizable=no, top=0, left=0");
-}    
+}
+
+
+
 
 </script>
 

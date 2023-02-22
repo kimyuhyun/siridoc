@@ -3,11 +3,19 @@ const router = express.Router();
 const bodyParser = require('body-parser');
 const db = require('../db');
 const utils = require('../Utils');
+const jwt = require('../jwt-util');
 
 function checking(req, res, next) {
-    //여기서 토큰 체크!
-
-    //
+    // const token = req.headers.authorization.split('Bearer ')[1]; // header에서 access token을 가져옵니다.
+    // const result = jwt.verify(token); // token을 검증합니다.
+    // if (!result.ok) {   // 검증에 실패하거나 토큰이 만료되었다면 클라이언트에게 메세지를 담아서 응답합니다.
+    //     res.send({
+    //         code: 0,
+    //         msg: result.message,
+    //     });
+    //     return;
+    // }
+    
     next();
 }
 
@@ -22,7 +30,7 @@ router.post('/write', checking, async function(req, res, next) {
     delete req.body.modified;
 
     var sql = ""
-    var records = new Array();
+    var records = [];
 
     for (key in req.body) {
         if (req.body[key] != 'null') {

@@ -4,8 +4,18 @@
         
     <table class="table table-borderless table-sm table-form">
         <tr>
-            <th width="100">제목</th>
+            <th width="100">브랜드</th>
+            <td><input name='brand' class='form-control' required value="<%=row.brand%>"/></td>
+        </tr>
+
+        <tr>
+            <th>상품명</th>
             <td><input name='name1' class='form-control' required value="<%=row.name1%>"/></td>
+        </tr>
+
+        <tr>
+            <th>설명</th>
+            <td><input name='desc1' class='form-control' required value="<%=row.desc1%>"/></td>
         </tr>
 
         <tr>
@@ -111,7 +121,7 @@ function drop(i, e) {
         formData.append("upload_file", file, file.name);
         $.ajax({
             type: 'POST',
-            url: '<%=process.env.IMAGE_SERVER%>',
+            url: '/file_upload/file_upload',
             processData: false,
             contentType: false,
             data: formData,

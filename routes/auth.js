@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const db = require('../db');
 const utils = require('../Utils');
+const jwt = require('../jwt-util');
 const moment = require('moment');
 
 
@@ -125,6 +126,7 @@ router.get('/is_member/:id', setLog, async function(req, res, next) {
                 console.log(arr);
             }
             arr.code = 1;
+            arr.access_token = jwt.sign(id);
         });
 
     } else {

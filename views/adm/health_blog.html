@@ -13,8 +13,7 @@
             <div class="d-flex flex-row justify-content-end mb-2">
                 <div class="input-group w-50">
                     <select name="search_column" class="form-select">
-                        <option value="name1" <%=data.search_column == 'name1' ? 'selected' : ''%>>병원명</option>
-                        <option value="addr" <%=data.search_column == 'addr' ? 'selected' : ''%>>주소</option>
+                        <option value="name1">제목</option>
                     </select>
                     <input type="text" name="search_value" class="form-control" placeholder="검색어를 입력해주세요" required value="<%=data.search_value%>" />
                     <button class="btn btn-primary" type="submit">검색</button>
@@ -32,10 +31,10 @@
                 <colgroup>
                     <col width="40px" />
                     <col width="85px" />
-                    <col width="100px" />
-                    <col width="200px" />
+                    <col width="60px" />
                     <col width="*" />
-                    <col width="200px" />
+                    <col width="100px" />
+                    <col width="100px" />
                 </colgroup>
                 <thed>
                     <tr>
@@ -47,19 +46,19 @@
                         </th>
                         <th class="text-center text-nowrap">썸네일</th>
                         <th class="text-center text-nowrap">
-                            병원명
+                            제목
                             <a class="<%=data.orderby == 'name1 DESC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('name1 DESC');"><i class="bi bi-arrow-down"></i></a>
                             <a class="<%=data.orderby == 'name1 ASC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('name1 ASC');"><i class="bi bi-arrow-up"></i></a>
                         </th>
                         <th class="text-center text-nowrap">
-                            주소
-                            <a class="<%=data.orderby == 'addr DESC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('addr DESC');"><i class="bi bi-arrow-down"></i></a>
-                            <a class="<%=data.orderby == 'addr ASC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('addr ASC');"><i class="bi bi-arrow-up"></i></a>
+                            등록일
+                            <a class="<%=data.orderby == 'created DESC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('created DESC');"><i class="bi bi-arrow-down"></i></a>
+                            <a class="<%=data.orderby == 'created ASC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('created ASC');"><i class="bi bi-arrow-up"></i></a>
                         </th>
                         <th class="text-center text-nowrap">
-                            전화
-                            <a class="<%=data.orderby == 'tel DESC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('tel DESC');"><i class="bi bi-arrow-down"></i></a>
-                            <a class="<%=data.orderby == 'tel ASC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('tel ASC');"><i class="bi bi-arrow-up"></i></a>
+                            수정일
+                            <a class="<%=data.orderby == 'modified DESC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('modified DESC');"><i class="bi bi-arrow-down"></i></a>
+                            <a class="<%=data.orderby == 'modified ASC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('modified ASC');"><i class="bi bi-arrow-up"></i></a>
                         </th>
                     </tr>
                 </thed>
@@ -85,8 +84,8 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="text-start text-nowrap"><%=row.addr%></td>
-                        <td class="text-center text-nowrap"><%=row.tel%></td>
+                        <td class="text-center text-nowrap"><%=row.created%></td>
+                        <td class="text-center text-nowrap"><%=row.modified%></td>
                     </tr>
                     <% } %>
                 </tbody>
