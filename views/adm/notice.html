@@ -8,15 +8,17 @@
     <div class='card-body'>
         <form name="frm2" method="GET" action="<%=baseUrl%>">
             <input type="hidden" name="table" value="<%=data.table%>"/>
-            <div class="d-flex flex-row justify-content-end mb-2">
-                <div class="input-group w-50">
-                    <select name="search_column" class="form-select">
-                        <option value="title" <%=data.search_column=='title'?'selected':''%>>제목</option>
-                        <option value="memo" <%=data.search_column=='memo'?'selected':''%>>내용</option>
-                    </select>
-                    <input type="text" name="search_value" class="form-control" placeholder="검색어를 입력해주세요" required value="<%=data.search_value%>" />
-                    <button class="btn btn-primary" type="submit">검색</button>
-                    <a href="<%=baseUrl%>?table=<%=data.table%>" class="btn btn-outline-dark" type="button">목록</a>
+            <div class="row">
+                <div class="col-12 col-lg-6 offset-lg-6">
+                    <div class="input-group">
+                        <select name="search_column" class="form-select">
+                            <option value="title" <%=data.search_column=='title'?'selected':''%>>제목</option>
+                            <option value="memo" <%=data.search_column=='memo'?'selected':''%>>내용</option>
+                        </select>
+                        <input type="text" name="search_value" class="form-control" placeholder="검색어를 입력해주세요" required value="<%=data.search_value%>" />
+                        <button class="btn btn-primary" type="submit">검색</button>
+                        <a href="<%=baseUrl%>?table=<%=data.table%>" class="btn btn-outline-dark" type="button">목록</a>
+                    </div>
                 </div>
             </div>
         </form>

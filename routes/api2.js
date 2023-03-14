@@ -61,16 +61,46 @@ async function setLog(req, res, next) {
 
 
 
-router.get('/', setLog, async function(req, res, next) {
+router.post('/add_sarcf', setLog, async function(req, res, next) {
+    const { memb_idx, point1, point2, point3, point4, point5 } = req.body;
 
-    // var sql = ``;
-    // var params = [];
-    // var resultArr = await utils.queryResult(sql, params);
-    // var resultObj = resultArr[0];
-    // console.log(resultObj);
-
-    res.send('api');
+    var sql = `
+        INSERT INTO SET 
+            memb_idx = ?, 
+            point1 = ?, 
+            point2 = ?, 
+            point3 = ?, 
+            point4 = ?, 
+            point5 = ?
+    `;
+    var params = [memb_idx, point1, point2, point3, point4, point5];
+    var resultArr = await utils.queryResult(sql, params);
+    
+    //포인트 계산
+    var ttl = eval(point1) + eval(point2) + eval(point3) + eval(point4) + eval(point5);
+    console.log(ttl);
+    // 0 ~ 3 저위험도
+    // 4 ~ 6 중위험도
+    // 7 ~ 10 고위험도
+    res.send({
+        ttl: ttl,
+    });
 });
+
+router.get('/get_h_w_list/:memb_idx', setLog, async function(req, res, next) {
+    const memb_idx = req.params.memb_idx;
+
+    var sql = `
+        SELECT Z.* FROM (
+            SELECT * FROM BODY_tbl WHERE memb_idx = ? ORDER BY created DESC LIMIT 100
+        ) as Z
+        GROUP BY wdate ORDER BY wdate DESC
+    `;
+    var params = [memb_idx];
+    var resultArr = await utils.queryResult(sql, params);
+    res.send(resultArr);
+});
+
 
 
 

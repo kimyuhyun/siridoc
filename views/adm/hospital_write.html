@@ -48,7 +48,7 @@
 <%
 
 
-        if (filename) {
+        if (filename != 0) {
 %>
                         <label for="file-input<%=i%>">
                             <img id="filename<%=i%>_IMG" src="<%=filename%>" class="img-thumbnail p-0" style="cursor: hand; width: <%=size%>; height: <%=size%>;" onclick="imageWindow('<%=filename%>');"/>

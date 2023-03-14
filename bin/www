@@ -26,27 +26,35 @@ var server = http.createServer(app);
  */
 
  server.listen(port, '0.0.0.0', function() {
-     //추가됨!
-     const db = require('../db');
+  //추가됨!
+  const db = require('../db');
 
-     setInterval(function() {
-         db.query('SELECT 1');
-         // console.log('SELECT 1');
-     }, 60000);
+  setInterval(function() {
+    db.query('SELECT 1');
+    // console.log('SELECT 1');
+  }, 60000);
 
-     var os = require('os');
-     var ifaces = os.networkInterfaces();
-     var result = '';
-     for (var dev in ifaces) {
-        var alias = 0;
-        ifaces[dev].forEach(function(details) {
-            if (details.family == 'IPv4' && details.internal === false && details.address.match('172')) {
-              result = details.address;
-              ++alias;
-            }
-        });
+  var os = require('os');
+  var ifaces = os.networkInterfaces();
+  var result = '';
+  for (var dev in ifaces) {
+    var alias = 0;
+    ifaces[dev].forEach(function(details) {
+      if (details.family == 'IPv4' && details.internal === false && details.address.match('172')) {
+        result = details.address;
+        ++alias;
       }
-      console.log('http://' + result + ':' + port);
+    });
+    if (alias == 0) {
+      ifaces[dev].forEach(function(details) {
+        if (details.family == 'IPv4' && details.internal === false && details.address.match('192')) {
+          result = details.address;
+          ++alias;
+        }
+      });
+    }
+  }
+  console.log('http://' + result + ':' + port);
 });
 
 server.on('error', onError);

@@ -63,10 +63,13 @@ router.get('/list/:view/:menu1/:menu2', checking, async function(req, res, next)
 
     var sql = `SELECT COUNT(*) as cnt FROM ?? ${where}`;
     var arr = await utils.queryResult(sql, records);
-    console.log(sql, records, arr);
 
+    if (!arr[0]) {
+        res.status(400);
+        return;
+    }
+    
     const pageHeler = utils.pageHelper(page, arr[0].cnt);
-
     records.push(pageHeler.skipSize);
     records.push(pageHeler.contentSize);
 
@@ -80,7 +83,7 @@ router.get('/list/:view/:menu1/:menu2', checking, async function(req, res, next)
     `;
     arr = await utils.queryResult(sql, records);
     // console.log(sql, records, arr);
-
+    
     var list = [];
     for (row of arr) {
         row.created = utils.utilConvertToMillis(row.created);

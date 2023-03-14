@@ -1,6 +1,6 @@
 {
     "name": "siridoc",
-    "version": "1.0.0",
+    "version": "3.0.0",
     "description": "",
     "main": "app.js",
     "dependencies": {
@@ -32,6 +32,7 @@
         "cookie-signature": "^1.0.6",
         "core-util-is": "^1.0.2",
         "cors": "^2.8.5",
+        "crypto-js": "^4.1.1",
         "css": "^1.0.8",
         "css-parse": "^1.0.4",
         "css-stringify": "^1.0.5",

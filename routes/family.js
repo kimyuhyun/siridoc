@@ -74,7 +74,20 @@ router.get('/get_family_list/:pid', setLog, async function(req, res, next) {
 
     var arr = [];
     await new Promise(function(resolve, reject) {
-        const sql = `SELECT idx, id, name1, birth, gender, is_selected FROM MEMB_tbl WHERE pid = ? ORDER BY birth ASC`;
+        const sql = `
+            SELECT 
+                A.idx, 
+                A.id, 
+                A.name1, 
+                A.filename0, 
+                A.birth, 
+                A.gender, 
+                A.is_selected,
+                (SELECT height FROM BODY_tbl WHERE memb_idx = A.idx ORDER BY idx DESC LIMIT 1) as height,
+                (SELECT weight FROM BODY_tbl WHERE memb_idx = A.idx ORDER BY idx DESC LIMIT 1) as weight
+            FROM MEMB_tbl as A
+            WHERE A.pid = ? ORDER BY A.birth ASC
+        `;
         db.query(sql, pid, function(err, rows, fields) {
             if (!err) {
                 resolve(rows);
@@ -95,7 +108,7 @@ router.get('/get_family_detail/:idx', setLog, async function(req, res, next) {
 
     var arr = {};
     await new Promise(function(resolve, reject) {
-        const sql = `SELECT idx, id, name1, birth, gender FROM MEMB_tbl WHERE idx = ?`;
+        const sql = `SELECT idx, id, name1, filename0, birth, gender, filename0 FROM MEMB_tbl WHERE idx = ?`;
         db.query(sql, idx, function(err, rows, fields) {
             if (!err) {
                 resolve(rows[0]);
@@ -108,6 +121,16 @@ router.get('/get_family_detail/:idx', setLog, async function(req, res, next) {
     }).then(function(data) {
         arr = utils.nvl(data);
     });
+
+    //마지막 몸무게, 키를 가져온다!
+    var sql = `SELECT height, weight FROM BODY_tbl WHERE memb_idx = ? ORDER BY idx DESC LIMIT 1`;
+    var params = [idx];
+    var resultArr = await utils.queryResult(sql, params);
+    var resultObj = resultArr[0];
+    
+    arr.height = resultObj.height;
+    arr.weight = resultObj.weight;
+
     res.send(arr);
 });
 
@@ -162,7 +185,7 @@ router.post('/set_family_select', setLog, async function(req, res, next) {
 
     var arr = {};
     await new Promise(function(resolve, reject) {
-        const sql = `SELECT idx, name1, birth FROM MEMB_tbl WHERE pid = ? AND is_selected = 1`;
+        const sql = `SELECT idx, name1, birth, gender, filename0 FROM MEMB_tbl WHERE pid = ? AND is_selected = 1`;
         db.query(sql, pid, function(err, rows, fields) {
             if (!err) {
                 resolve(rows[0]);

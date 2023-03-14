@@ -70,6 +70,12 @@ app.use('/muscle_check', muscleCheckRouter);
 app.use('/new_muscle_check', require('./routes/new_muscle_check'));
 app.use('/patient', require('./routes/patient'));
 app.use('/file_upload', require('./routes/file_upload'));
+app.use('/health_article', require('./routes/health_article'));
+app.use('/user', require('./routes/user'));
+app.use('/api2', require('./routes/api2'));
+app.use('/aud', require('./routes/aud'));
+app.use('/history', require('./routes/history'));
+app.use('/map', require('./routes/map'));
 
 
 

@@ -1,5 +1,9 @@
-function util_convert_to_millis(time) {
-	var time = new Date(time).getTime() / 1000;
+function util_convert_to_millis(str) {
+	if (str == '0' || str == '') {
+		return '';
+	}
+
+	var time = new Date(str).getTime() / 1000;
 	var currentTime = Math.floor(new Date().getTime()/1000);
 	var inputTime = time;
 	var diffTime = currentTime - inputTime;
@@ -18,7 +22,7 @@ function util_convert_to_millis(time) {
 			postTime = parseInt(diffTime / 86400) + '일 전';
 			break;
 		case diffTime > 604800 :
-			var date = new Date(time*1000);
+			var date = new Date(time * 1000);
 			var month = eval(date.getMonth()+1);
 			var day = date.getDate();
 

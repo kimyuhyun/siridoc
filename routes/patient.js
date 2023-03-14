@@ -115,15 +115,11 @@ router.get('/write', checking, async function(req, res, next) {
     var arr = await utils.queryResult(sql, params);
     row = arr[0];
     
-    sql = `SELECT * FROM NEW_MUSCLE_CHECK_tbl WHERE memb_idx = ? ORDER BY created DESC, idx DESC`;
-    arr = await utils.queryResult(sql, [row.idx]);
-    
     res.render(`./adm/${view}_write.html`, {
         myinfo: req.session,
         return_url,
         table,
-        row,
-        arr,
+        row
     });
 
 

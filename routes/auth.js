@@ -84,7 +84,7 @@ router.get('/is_member/:id', setLog, async function(req, res, next) {
 
     if (cnt > 0) {
         await new Promise(function(resolve, reject) {
-            const sql = `SELECT idx, pid, id, name1, birth, gender, email FROM MEMB_tbl WHERE id = ?`;
+            const sql = `SELECT idx, name1, birth, gender, filename0, pid, id, email FROM MEMB_tbl WHERE id = ?`;
             db.query(sql, id, function(err, rows, fields) {
                 if (!err) {
                     resolve(rows[0]);
@@ -102,8 +102,8 @@ router.get('/is_member/:id', setLog, async function(req, res, next) {
         });
 
         await new Promise(function(resolve, reject) {
-            const sql = `SELECT idx, name1, birth, gender FROM MEMB_tbl WHERE pid = ? AND is_selected = 1`;
-            db.query(sql, [id, id], function(err, rows, fields) {
+            const sql = `SELECT idx, name1, birth, gender, filename0 FROM MEMB_tbl WHERE pid = ? AND is_selected = 1`;
+            db.query(sql, id, function(err, rows, fields) {
                 if (!err) {
                     resolve(rows[0]);
                 } else {
@@ -118,11 +118,13 @@ router.get('/is_member/:id', setLog, async function(req, res, next) {
                 arr.selected_name1 = data.name1;
                 arr.selected_birth = data.birth;
                 arr.selected_gender = data.gender;
+                arr.selected_thumb = data.filename0;
             } else {
                 arr.selected_idx = arr.idx;
                 arr.selected_name1 = arr.name1;
                 arr.selected_birth = arr.birth;
                 arr.selected_gender = arr.gender;
+                arr.selected_thumb = data.filename0;
                 console.log(arr);
             }
             arr.code = 1;
@@ -147,12 +149,12 @@ router.get('/is_member/:id', setLog, async function(req, res, next) {
 });
 
 router.post('/register', setLog, async function(req, res, next) {
-    const { id, name1, birth, gender, email, height, weight } = req.body;
+    const { id, name1, birth, gender, email, filename0, height, weight } = req.body;
     var idx = 0;
 
     await new Promise(function(resolve, reject) {
-        const sql = `INSERT INTO MEMB_tbl SET pid = ?, id = ?, name1 =?, birth = ?, gender = ?, email = ?, is_selected = 1, created = NOW(), modified = NOW()`;
-        db.query(sql, [id, id, name1, birth, gender, email], function(err, rows, fields) {
+        const sql = `INSERT INTO MEMB_tbl SET pid = ?, id = ?, name1 =?, birth = ?, gender = ?, email = ?, filename0 = ?, is_selected = 1, created = NOW(), modified = NOW()`;
+        db.query(sql, [id, id, name1, birth, gender, email, filename0], function(err, rows, fields) {
             if (!err) {
                 resolve(rows);
             } else {
@@ -168,7 +170,7 @@ router.post('/register', setLog, async function(req, res, next) {
     let wdate = moment().format('YYYY-MM-DD');
 
     await new Promise(function(resolve, reject) {
-        const sql = `INSERT INTO BODY_tbl SET memb_idx = ?, wdate = ?, weight = ?, height =?, created = NOW(), modified = NOW()`;
+        const sql = `INSERT INTO BODY_tbl SET memb_idx = ?, wdate = ?, weight = ?, height =?`;
         db.query(sql, [idx, wdate, weight, height], function(err, rows, fields) {
             if (!err) {
                 resolve(rows);

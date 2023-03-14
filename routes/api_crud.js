@@ -76,8 +76,8 @@ router.post('/write', checking, async function(req, res, next) {
 router.post('/delete', checking, async function(req, res, next) {
     const table = req.body.table;
     const idx = req.body.idx;
-    const sql = `DELETE FROM ${table} WHERE idx = ?`;
-    db.query(sql, idx);
+    const sql = `DELETE FROM ?? WHERE idx = ?`;
+    db.query(sql, [table, idx]);
     res.send({
         code: 1,
         msg: '삭제 되었습니다.'

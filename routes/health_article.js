@@ -61,15 +61,24 @@ async function setLog(req, res, next) {
 
 
 
-router.get('/', setLog, async function(req, res, next) {
+router.get('/list/:flag', setLog, async function(req, res, next) {
+    const flag = req.params.flag;
+    const limit = req.query.limit;
 
-    // var sql = ``;
-    // var params = [];
-    // var resultArr = await utils.queryResult(sql, params);
-    // var resultObj = resultArr[0];
-    // console.log(resultObj);
+    var table = '';
+    if (flag == 'blog') {
+        table = 'HEALTH_BLOG_tbl';
+    } else if (flag == 'food') {
+        table = 'HEALTH_FOOD_tbl';
+    } else if (flag == 'mac') {
+        table = 'HEALTH_MAC_tbl';
+    }
 
-    res.send('api');
+    sql = `SELECT * FROM ?? ORDER BY idx DESC LIMIT 0 , ${limit}`;
+    params = [table, limit];
+    resultArr = await utils.queryResult(sql, params);
+    
+    res.send(resultArr);
 });
 
 

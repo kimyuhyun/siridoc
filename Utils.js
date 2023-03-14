@@ -247,14 +247,14 @@ class Utils {
             for (var rows of arr) {
                 for (var i in rows) {
                     if (rows[i] == null || rows[i] == 'null') {
-                        rows[i] = '';
+                        rows[i] = '0';
                     }
                 }
             }
         } else {
             for (var i in arr) {
                 if (arr[i] == null || arr[i] == 'null') {
-                    arr[i] = '';
+                    arr[i] = '0';
                 }
             }
         }

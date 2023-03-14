@@ -92,7 +92,7 @@ router.post('/basic_check', setLog, async function(req, res, next) {
         check2 = true;
     }
 
-    if (!check1 && !check1) {
+    if (!check1 && !check2) {
         res.send({
             code: 1,
             msg: '근감소증이 아닙니다.'
