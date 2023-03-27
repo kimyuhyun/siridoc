@@ -4,6 +4,7 @@ const fs = require('fs');
 const db = require('../db');
 const utils = require('../Utils');
 const moment = require('moment');
+const gumjinPoint = require('../GumjinPoint');
 
 async function setLog(req, res, next) {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -88,6 +89,17 @@ router.get('/detail/:memb_idx', setLog, async function(req, res, next) {
 
 router.get('/get_gumjin_graph/:memb_idx', setLog, async function(req, res, next) {
     const memb_idx = req.params.memb_idx;
+
+    var sql = `SELECT gender FROM MEMB_tbl WHERE idx = ?`;
+    var params = [memb_idx];
+    var resultArr = await utils.queryResult(sql, params);
+    var resultObj = await utils.nvl(resultArr[0]);
+    if (!resultObj) {
+        res.send([]);
+        return;
+    }
+    var gender = resultObj.gender;
+
     var sql = `SELECT squat, akruk, jongari, asm, created FROM NEW_MUSCLE_CHECK_tbl WHERE memb_idx = ? ORDER BY created DESC, idx DESC LIMIT 0 ,6`;
     var params = [memb_idx];
     var resultArr = await utils.queryResult(sql, params);
@@ -110,6 +122,13 @@ router.get('/get_gumjin_graph/:memb_idx', setLog, async function(req, res, next)
         if (obj.asm == '') {
             obj.asm = 0;
         }
+
+        obj.squat_point = gumjinPoint.getSquatPoint(obj.squat);
+        obj.akruk_point = gumjinPoint.getAkrukPoint(gender, obj.akruk);
+        obj.jongari_point = gumjinPoint.getJongariPoint(gender, obj.jongari);
+        obj.asm_point = gumjinPoint.getASMPoint(gender, obj.asm);
+
+        
         arr.push(obj);
     }
 
@@ -138,22 +157,27 @@ router.get('/get_bmi_graph/:memb_idx', setLog, async function(req, res, next) {
     var resultObj = await utils.nvl(resultArr[0]);
 
     if (!resultObj) {
-        var result = {};
-        result.bmi = [0,0,0,0,0,0];
-        result.wdate = ['','','','','',''];
-        result.avg = 0;
-        result.age = 0;
+        const result = {
+            avg: 0,
+            age: 0,
+            bmi_list: [
+                gumjinPoint.getBMIObject(0),
+                gumjinPoint.getBMIObject(0),
+                gumjinPoint.getBMIObject(0),
+                gumjinPoint.getBMIObject(0),
+                gumjinPoint.getBMIObject(0),
+                gumjinPoint.getBMIObject(0),
+            ],
+        };
         res.send(result);
         return;
     }
 
     var birth = resultObj.birth;
     var gender = resultObj.gender;
-    
-    
+        
     var bmiArr = [];
-    var wdateArr = [];
-
+        
     sql = `
         SELECT Z.idx, Z.wdate, Z.height, Z.weight FROM (
             SELECT * FROM BODY_tbl WHERE memb_idx = ? ORDER BY created DESC LIMIT 100
@@ -162,6 +186,7 @@ router.get('/get_bmi_graph/:memb_idx', setLog, async function(req, res, next) {
     `;
     params = [memb_idx];
     resultArr = await utils.queryResult(sql, params);
+    resultArr = resultArr.reverse();
     var age = 0;
     for (obj of resultArr) {
         age = utils.getAge2(birth, obj.wdate.split('-')[0]);
@@ -172,16 +197,14 @@ router.get('/get_bmi_graph/:memb_idx', setLog, async function(req, res, next) {
         var tmp2 = w / (h * 0.01 * h * 0.01);
         //
 
-        bmiArr.push(tmp2.toFixed(2));
-        wdateArr.push(moment(obj.wdate).format('MM/DD'));
-        
+        var bmiObj = gumjinPoint.getBMIObject(tmp2.toFixed(2), moment(obj.wdate).format('MM/DD'));
+        bmiArr.push(bmiObj);
     }
 
     var emptyCnt = 6 - bmiArr.length;
     if (emptyCnt > 0) {
         for (var i = 0; i < emptyCnt; i++) {
-            bmiArr.push(0);
-            wdateArr.push('');
+            bmiArr.unshift(gumjinPoint.getBMIObject(0));
         }
     }
 
@@ -191,27 +214,15 @@ router.get('/get_bmi_graph/:memb_idx', setLog, async function(req, res, next) {
     resultObj = resultArr[0];
     console.log(resultObj);
 
-    // if (!resultObj) {
-    //     res.send({
-    //         bmi: [0,0,0,0,0,0],
-    //         wdate: [0,0,0,0,0,0],
-    //         avg: 0,
-    //         age: 0,
-    //     });
-    //     return;
-    // }
-
     var result = {};
-    result.bmi = bmiArr;
-    result.wdate = wdateArr;
     if (resultObj) {
         result.avg = resultObj.avg.toFixed(2);
     } else {
         result.avg = 0;
     }
     result.age = age;
+    result.bmi_list = bmiArr;
     res.send(result);
-
 });
 
 module.exports = router;

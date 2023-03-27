@@ -124,7 +124,7 @@ router.get('/is_member/:id', setLog, async function(req, res, next) {
                 arr.selected_name1 = arr.name1;
                 arr.selected_birth = arr.birth;
                 arr.selected_gender = arr.gender;
-                arr.selected_thumb = data.filename0;
+                arr.selected_thumb = arr.filename0;
                 console.log(arr);
             }
             arr.code = 1;

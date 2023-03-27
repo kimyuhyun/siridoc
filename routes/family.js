@@ -185,7 +185,19 @@ router.post('/set_family_select', setLog, async function(req, res, next) {
 
     var arr = {};
     await new Promise(function(resolve, reject) {
-        const sql = `SELECT idx, name1, birth, gender, filename0 FROM MEMB_tbl WHERE pid = ? AND is_selected = 1`;
+        const sql = `
+            SELECT 
+                idx, 
+                name1, 
+                birth, 
+                gender, 
+                filename0,
+                (SELECT height FROM BODY_tbl WHERE memb_idx = A.idx ORDER BY idx DESC LIMIT 1) as height,
+                (SELECT weight FROM BODY_tbl WHERE memb_idx = A.idx ORDER BY idx DESC LIMIT 1) as weight
+            FROM MEMB_tbl as A
+            WHERE pid = ? 
+            AND is_selected = 1
+        `;
         db.query(sql, pid, function(err, rows, fields) {
             if (!err) {
                 resolve(rows[0]);
@@ -198,6 +210,8 @@ router.post('/set_family_select', setLog, async function(req, res, next) {
     }).then(function(data) {
         arr = utils.nvl(data);
     });
+
+    console.log(arr);
 
     res.send(arr);
 });

@@ -203,10 +203,10 @@ function getNewMuscaleCheckList() {
                 html += `
                     <tr>
                         <td class='text-center'>${no}</td>
-                        <td class='text-end'>${obj.squat}s ${getHanglePoint(obj.squat_point)}</td>
-                        <td class='text-end'>${obj.akruk}kg ${getHanglePoint(obj.akruk_point)}</td>
-                        <td class='text-end'>${obj.jongari}cm ${getHanglePoint(obj.jongari_point)}</td>
-                        <td class='text-end'>${obj.asm} ${getHanglePoint(obj.asm_point)}</td>
+                        <td class='text-end ${getColor(obj.squat_point)}'>${obj.squat}</td>
+                        <td class='text-end ${getColor(obj.akruk_point)}'>${obj.akruk}</td>
+                        <td class='text-end ${getColor(obj.jongari_point)}'>${obj.jongari}</td>
+                        <td class='text-end ${getColor(obj.asm_point)}'>${obj.asm}</td>
                         <td class='text-end'>${obj.left_arm}</td>
                         <td class='text-end'>${obj.right_arm}</td>
                         <td class='text-end'>${obj.left_foot}</td>
@@ -226,13 +226,13 @@ function getNewMuscaleCheckList() {
     });
 }
 
-function getHanglePoint(point) {
+function getColor(point) {
     if (point < 2) {
-        return `<span class='text-danger'>미달</span>`;
+        return 'text-danger';
     } else if (point == 2) {
-        return `<span class='text-warning'>보통</span>`;
+        return 'text-warning';
     } else if (point == 3) {
-        return `<span class='text-success'>양호</span>`;
+        return 'text-success';
     }
 }
 

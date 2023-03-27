@@ -62,18 +62,49 @@ module.exports = {
         }
 
         if (gender == 1) {
-            if (value < 8) {
-                point = 1.5;
-            } else {
+            if (value >= 8) {
                 point = 3;
+            } else if (value < 8 && value >= 7) {
+                point = 2;
+            } else if (value < 7) {
+                point = 1;
             }
         } else {
-            if (value < 6.2) {
-                point = 1.5;
-            } else {
+            if (value >= 6.2) {
                 point = 3;
+            } else if (value < 6.2 && value >= 5.7) {
+                point = 2;
+            } else if (value < 5.7) {
+                point = 1;
             }
         }
         return point;
+    },
+    getBMIObject: (value, wdate) => {
+        var color = 'yellow';
+        var desc = '저체중';
+        if (!wdate) {
+            wdate = '';
+        }
+        if (value > 30) {
+            color = 'red';
+            desc = '고도비만';
+        } else if (value > 25 && value <= 30) {
+            color = 'pupple';
+            desc = '비만';
+        } else if (value > 23 && value <= 25) {
+            color = 'blue';
+            desc = '과체중';
+        } else if (value > 18.5 && value <= 23) {
+            color = 'green';
+            desc = '정상';
+        }
+        const obj = {
+            bmi: value,
+            desc: desc,
+            color: color,
+            wdate: wdate,
+        };
+        return obj;
     },
 }

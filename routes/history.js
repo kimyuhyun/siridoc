@@ -1,13 +1,14 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const fs = require('fs');
-const db = require('../db');
-const utils = require('../Utils');
-const moment = require('moment');
-const gumjinPoint = require('../GumjinPoint');
+const fs = require("fs");
+const db = require("../db");
+const utils = require("../Utils");
+const moment = require("moment");
+const gumjinPoint = require("../GumjinPoint");
+const { objectMethod } = require("babel-types");
 
 async function setLog(req, res, next) {
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
 
     var sql = `SELECT visit FROM ANALYZER_tbl WHERE ip = ? ORDER BY idx DESC LIMIT 0, 1`;
     var params = [ip];
@@ -19,21 +20,21 @@ async function setLog(req, res, next) {
     }
 
     sql = `INSERT INTO ANALYZER_tbl SET ip = ?, agent = ?, visit = ?, created = NOW()`;
-    params = [ip, req.headers['user-agent'], cnt];
+    params = [ip, req.headers["user-agent"], cnt];
     var result = await utils.queryResult(sql, params);
 
     //4분이상 것들 삭제!!
-    fs.readdir('./liveuser', async function(err, filelist) {
+    fs.readdir("./liveuser", async function (err, filelist) {
         for (file of filelist) {
-            await fs.readFile('./liveuser/' + file, 'utf8', function(err, data) {
+            await fs.readFile("./liveuser/" + file, "utf8", function (err, data) {
                 if (!err) {
                     try {
-                        var tmp = data.split('|S|');
+                        var tmp = data.split("|S|");
                         moment.tz.setDefault("Asia/Seoul");
-                        var connTime = moment.unix(tmp[0] / 1000).format('YYYY-MM-DD HH:mm');
+                        var connTime = moment.unix(tmp[0] / 1000).format("YYYY-MM-DD HH:mm");
                         var minDiff = moment.duration(moment(new Date()).diff(moment(connTime))).asMinutes();
                         if (minDiff > 4) {
-                            fs.unlink('./liveuser/' + file, function(err) {
+                            fs.unlink("./liveuser/" + file, function (err) {
                                 if (err) {
                                     console.log(err);
                                 }
@@ -51,7 +52,7 @@ async function setLog(req, res, next) {
 
     //현재 접속자 파일 생성
     var memo = new Date().getTime() + "|S|" + req.baseUrl + req.path;
-    fs.writeFile('./liveuser/' + ip, memo, function(err) {
+    fs.writeFile("./liveuser/" + ip, memo, function (err) {
         if (err) {
             console.log(err);
         }
@@ -60,7 +61,7 @@ async function setLog(req, res, next) {
     next();
 }
 
-router.get('/latest/:memb_idx', setLog, async function(req, res, next) {
+router.get("/latest/:memb_idx", setLog, async function (req, res, next) {
     const memb_idx = req.params.memb_idx;
 
     //성별가져오기!
@@ -71,7 +72,7 @@ router.get('/latest/:memb_idx', setLog, async function(req, res, next) {
     if (!resultObj) {
         res.send({
             code: 0,
-            msg: `gender is null`
+            msg: `gender is null`,
         });
         return;
     }
@@ -101,9 +102,9 @@ router.get('/latest/:memb_idx', setLog, async function(req, res, next) {
     var resultArr = await utils.queryResult(sql, params);
 
     var resultObj = {
-        code: 0
+        code: 0,
     };
-    
+
     // 각각의 측정 항목을 1,2,3 점으로 변환한다! 1: 미달, 2: 보통, 3: 양호
     for (obj of resultArr) {
         obj.code = 1;
@@ -111,9 +112,9 @@ router.get('/latest/:memb_idx', setLog, async function(req, res, next) {
         obj.akruk_point = gumjinPoint.getAkrukPoint(gender, obj.akruk);
         obj.jongari_point = gumjinPoint.getJongariPoint(gender, obj.jongari);
         obj.asm_point = gumjinPoint.getASMPoint(gender, obj.asm);
-        
+
         var pointSum = eval(obj.squat_point) + eval(obj.akruk_point);
-    
+
         //ASM 있으면 asm 더한다!
         if (obj.asm_point > 0) {
             pointSum += eval(obj.asm_point);
@@ -122,16 +123,15 @@ router.get('/latest/:memb_idx', setLog, async function(req, res, next) {
         }
         obj.point_sum = pointSum;
     }
-    
+
     if (resultArr[0]) {
-        resultObj = resultArr[0];    
+        resultObj = resultArr[0];
     }
 
     res.send(resultObj);
 });
 
-
-router.get('/list/:memb_idx', setLog, async function(req, res, next) {
+router.get("/list/:memb_idx", setLog, async function (req, res, next) {
     const memb_idx = req.params.memb_idx;
 
     //성별가져오기!
@@ -142,7 +142,7 @@ router.get('/list/:memb_idx', setLog, async function(req, res, next) {
     if (!resultObj) {
         res.send({
             code: 0,
-            msg: `gender is null`
+            msg: `gender is null`,
         });
         return;
     }
@@ -169,7 +169,7 @@ router.get('/list/:memb_idx', setLog, async function(req, res, next) {
     `;
     var params = [memb_idx];
     var resultArr = await utils.queryResult(sql, params);
-    
+
     // 각각의 측정 항목을 1,2,3 점으로 변환한다! 1: 미달, 2: 보통, 3: 양호
     for (obj of resultArr) {
         obj.code = 1;
@@ -177,9 +177,9 @@ router.get('/list/:memb_idx', setLog, async function(req, res, next) {
         obj.akruk_point = gumjinPoint.getAkrukPoint(gender, obj.akruk);
         obj.jongari_point = gumjinPoint.getJongariPoint(gender, obj.jongari);
         obj.asm_point = gumjinPoint.getASMPoint(gender, obj.asm);
-        
+
         var pointSum = eval(obj.squat_point) + eval(obj.akruk_point);
-    
+
         //ASM 있으면 asm 더한다!
         if (obj.asm_point > 0) {
             pointSum += eval(obj.asm_point);
@@ -194,7 +194,7 @@ router.get('/list/:memb_idx', setLog, async function(req, res, next) {
     });
 });
 
-router.get('/modify_value/:idx/:column/:value', setLog, async function(req, res, next) {
+router.get("/modify_value/:idx/:column/:value", setLog, async function (req, res, next) {
     const idx = req.params.idx;
     const column = req.params.column;
     const value = req.params.value;
@@ -206,7 +206,7 @@ router.get('/modify_value/:idx/:column/:value', setLog, async function(req, res,
         resultObj.code = 0;
         resultObj.msg = `UPDATE Error.`;
         res.send(resultObj);
-        return;    
+        return;
     }
 
     sql = `SELECT * FROM NEW_MUSCLE_CHECK_tbl WHERE idx = ?`;
@@ -222,7 +222,7 @@ router.get('/modify_value/:idx/:column/:value', setLog, async function(req, res,
     if (!resultObj) {
         res.send({
             code: 0,
-            msg: `gender is null`
+            msg: `gender is null`,
         });
         return;
     }
@@ -233,7 +233,7 @@ router.get('/modify_value/:idx/:column/:value', setLog, async function(req, res,
     obj.akruk_point = gumjinPoint.getAkrukPoint(gender, obj.akruk);
     obj.jongari_point = gumjinPoint.getJongariPoint(gender, obj.jongari);
     obj.asm_point = gumjinPoint.getASMPoint(gender, obj.asm);
-    
+
     var pointSum = eval(obj.squat_point) + eval(obj.akruk_point);
 
     //ASM 있으면 asm 더한다!
@@ -249,11 +249,11 @@ router.get('/modify_value/:idx/:column/:value', setLog, async function(req, res,
     res.send(obj);
 });
 
-router.get('/modify_asm_value/:idx/:left_arm/:right_arm/:left_foot/:right_foot/:height1', setLog, async function(req, res, next) {
+router.get("/modify_asm_value/:idx/:left_arm/:right_arm/:left_foot/:right_foot/:height1", setLog, async function (req, res, next) {
     const { idx, left_arm, right_arm, left_foot, right_foot, height1 } = req.params;
 
     //asm 구하기!
-    var asm = (eval(left_arm) + eval(right_arm) + eval(left_foot) + eval(right_foot)) / Math.pow((eval(height1) / 100), 2);
+    var asm = (eval(left_arm) + eval(right_arm) + eval(left_foot) + eval(right_foot)) / Math.pow(eval(height1) / 100, 2);
     asm = asm.toFixed(2);
     //
 
@@ -274,7 +274,7 @@ router.get('/modify_asm_value/:idx/:left_arm/:right_arm/:left_foot/:right_foot/:
         resultObj.code = 0;
         resultObj.msg = `UPDATE Error.`;
         res.send(resultObj);
-        return;    
+        return;
     }
 
     sql = `SELECT * FROM NEW_MUSCLE_CHECK_tbl WHERE idx = ?`;
@@ -290,12 +290,11 @@ router.get('/modify_asm_value/:idx/:left_arm/:right_arm/:left_foot/:right_foot/:
     if (!resultObj) {
         res.send({
             code: 0,
-            msg: `gender is null`
+            msg: `gender is null`,
         });
         return;
     }
     var gender = resultObj.gender;
-
 
     if (!obj.asm) {
         obj.asm = 0;
@@ -306,7 +305,7 @@ router.get('/modify_asm_value/:idx/:left_arm/:right_arm/:left_foot/:right_foot/:
     obj.akruk_point = gumjinPoint.getAkrukPoint(gender, obj.akruk);
     obj.jongari_point = gumjinPoint.getJongariPoint(gender, obj.jongari);
     obj.asm_point = gumjinPoint.getASMPoint(gender, obj.asm);
-    
+
     var pointSum = eval(obj.squat_point) + eval(obj.akruk_point);
 
     //ASM 있으면 asm 더한다!
@@ -322,6 +321,155 @@ router.get('/modify_asm_value/:idx/:left_arm/:right_arm/:left_foot/:right_foot/:
     res.send(obj);
 });
 
+router.get("/get_data_by_month/:memb_idx/:year/:month", setLog, async function (req, res, next) {
+    const memb_idx = req.params.memb_idx;
+    const current_date = `${req.params.year}-${req.params.month}`;
 
+    //성별가져오기!
+    var sql = `SELECT gender FROM MEMB_tbl WHERE idx = ?`;
+    var params = [memb_idx];
+    var resultArr = await utils.queryResult(sql, params);
+    var resultObj = resultArr[0];
+    if (!resultObj) {
+        res.send({
+            code: 0,
+            msg: `gender is null`,
+        });
+        return;
+    }
+    var gender = resultObj.gender;
+
+    var sql = `
+        SELECT 
+            idx, 
+            my_comment, 
+            jongari, 
+            akruk, 
+            squat, 
+            asm, 
+            left_arm,
+            right_arm,
+            left_foot,
+            right_foot,
+            height1,
+            created
+        FROM NEW_MUSCLE_CHECK_tbl 
+        WHERE memb_idx = ? 
+        AND LEFT(created, 7) = ?
+        AND created is not null 
+        ORDER BY created ASC 
+    `;
+    var params = [memb_idx, current_date];
+    var resultArr = await utils.queryResult(sql, params);
+
+    var i = 0;
+
+    // 각각의 측정 항목을 1,2,3 점으로 변환한다! 1: 미달, 2: 보통, 3: 양호
+    for (obj of resultArr) {
+       obj.seq = i; 
+
+        obj.squat_point = gumjinPoint.getSquatPoint(obj.squat);
+        obj.akruk_point = gumjinPoint.getAkrukPoint(gender, obj.akruk);
+        obj.jongari_point = gumjinPoint.getJongariPoint(gender, obj.jongari);
+        obj.asm_point = gumjinPoint.getASMPoint(gender, obj.asm);
+
+        var pointSum = eval(obj.squat_point) + eval(obj.akruk_point);
+
+        //ASM 있으면 asm 더한다!
+        if (obj.asm_point > 0) {
+            pointSum += eval(obj.asm_point);
+        } else {
+            pointSum += eval(obj.jongari_point);
+        }
+        obj.point_sum = pointSum;
+    }
+    res.send({
+        code: 1,
+        data: resultArr,
+    });
+});
+
+router.get("/get_data_by_month_count/:memb_idx/:year/:month", setLog, async function (req, res, next) {
+    const memb_idx = req.params.memb_idx;
+    const current_date = `${req.params.year}-${req.params.month}`;
+
+    //성별가져오기!
+    var sql = `SELECT gender FROM MEMB_tbl WHERE idx = ?`;
+    var params = [memb_idx];
+    var resultArr = await utils.queryResult(sql, params);
+    var resultObj = resultArr[0];
+    if (!resultObj) {
+        res.send({
+            code: 0,
+            msg: `gender is null`,
+        });
+        return;
+    }
+    var gender = resultObj.gender;
+
+    sql = `
+        SELECT 
+            jongari, 
+            akruk, 
+            squat, 
+            asm, 
+            left_arm,
+            right_arm,
+            left_foot,
+            right_foot,
+            height1,
+            created 
+        FROM NEW_MUSCLE_CHECK_tbl 
+        WHERE memb_idx = ? 
+        AND LEFT(created, 7) = ?
+        AND created is not null 
+        ORDER BY created ASC
+    `;
+    resultArr = await utils.queryResult(sql, [memb_idx, current_date]);
+
+    var tmp1, tmp2;
+    var i = 0;
+    for (obj of resultArr) {
+        //날짜 분리
+        tmp1 = obj.created.split(" ")[0];
+        tmp2 = tmp1.split("-");
+
+        obj.year = tmp2[0];
+        obj.month = tmp2[1];
+        obj.day = tmp2[2];
+
+        obj.seq = i;
+
+        var squat_point = gumjinPoint.getSquatPoint(obj.squat);
+        var akruk_point = gumjinPoint.getAkrukPoint(gender, obj.akruk);
+        var jongari_point = gumjinPoint.getJongariPoint(gender, obj.jongari);
+        var asm_point = gumjinPoint.getASMPoint(gender, obj.asm);
+
+        var pointSum = eval(squat_point) + eval(akruk_point);
+
+        //ASM 있으면 asm 더한다!
+        if (asm_point > 0) {
+            pointSum += eval(asm_point);
+        } else {
+            pointSum += eval(jongari_point);
+        }
+        obj.point_sum = pointSum;
+
+        i++;
+
+        delete obj.created;
+        delete obj.squat;
+        delete obj.akruk;
+        delete obj.jongari;
+        delete obj.asm;
+        delete obj.left_arm;
+        delete obj.right_arm;
+        delete obj.left_foot;
+        delete obj.right_foot;
+        delete obj.height1;
+        
+    }
+    res.send(resultArr);
+});
 
 module.exports = router;
