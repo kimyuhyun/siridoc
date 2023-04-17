@@ -14,7 +14,7 @@ async function checkToken(req, res, next) {
         return;
     }
 
-    const after10s = Math.floor(new Date().getTime()) - 5000;
+    const after10s = Math.floor(new Date().getTime()) - 10000;
     const token = eval(aes256util.decrypt(req.query.token));
     if (!token) {
         res.send({
