@@ -195,7 +195,7 @@ router.get("/list/:memb_idx", setLog, async function (req, res, next) {
 });
 
 router.post("/add", setLog, async function (req, res, next) {
-    const { idx, squat, akruk, jongari, left_arm, right_arm, left_foot, right_foot, height1 } = req.body;
+    const { memb_idx, squat, akruk, jongari, left_arm, right_arm, left_foot, right_foot, height1 } = req.body;
 
     //asm 구하기!
     var asm = (eval(left_arm) + eval(right_arm) + eval(left_foot) + eval(right_foot)) / Math.pow(eval(height1) / 100, 2);
@@ -217,7 +217,7 @@ router.post("/add", setLog, async function (req, res, next) {
             created = NOW(),
             modified = NOW()
         `;
-    var params = [idx, squat, akruk, jongari, left_arm, right_arm, left_foot, right_foot, height1, asm];
+    var params = [memb_idx, squat, akruk, jongari, left_arm, right_arm, left_foot, right_foot, height1, asm];
     var resultArr = await utils.queryResult(sql, params);
     if (!resultArr) {
         resultObj.code = 0;
