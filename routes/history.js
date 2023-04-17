@@ -194,6 +194,40 @@ router.get("/list/:memb_idx", setLog, async function (req, res, next) {
     });
 });
 
+router.post("/add", setLog, async function (req, res, next) {
+    const { idx, squat, akruk, jongari, left_arm, right_arm, left_foot, right_foot, height1 } = req.body;
+
+    //asm 구하기!
+    var asm = (eval(left_arm) + eval(right_arm) + eval(left_foot) + eval(right_foot)) / Math.pow(eval(height1) / 100, 2);
+    asm = asm.toFixed(2);
+    //
+
+    var sql = `
+        INSERT INTO NEW_MUSCLE_CHECK_tbl SET 
+            memb_idx = ?,
+            squat = ?,
+            akruk = ?,
+            jongari = ?,
+            left_arm = ?,
+            right_arm = ?,
+            left_foot = ?,
+            right_foot = ?,
+            height1 = ?,
+            asm = ?,
+            created = NOW(),
+            modified = NOW()
+        `;
+    var params = [idx, squat, akruk, jongari, left_arm, right_arm, left_foot, right_foot, height1, asm];
+    var resultArr = await utils.queryResult(sql, params);
+    if (!resultArr) {
+        resultObj.code = 0;
+        resultObj.msg = `INSERT Error.`;
+        res.send(resultObj);
+        return;
+    }
+    res.send({ code: 1 });
+});
+
 router.get("/modify_value/:idx/:column/:value", setLog, async function (req, res, next) {
     const idx = req.params.idx;
     const column = req.params.column;
@@ -366,7 +400,7 @@ router.get("/get_data_by_month/:memb_idx/:year/:month", setLog, async function (
 
     // 각각의 측정 항목을 1,2,3 점으로 변환한다! 1: 미달, 2: 보통, 3: 양호
     for (obj of resultArr) {
-       obj.seq = i; 
+        obj.seq = i;
 
         obj.squat_point = gumjinPoint.getSquatPoint(obj.squat);
         obj.akruk_point = gumjinPoint.getAkrukPoint(gender, obj.akruk);
@@ -467,7 +501,6 @@ router.get("/get_data_by_month_count/:memb_idx/:year/:month", setLog, async func
         delete obj.left_foot;
         delete obj.right_foot;
         delete obj.height1;
-        
     }
     res.send(resultArr);
 });
