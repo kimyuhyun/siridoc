@@ -1,13 +1,13 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const fs = require('fs');
-const db = require('../db');
-const utils = require('../Utils');
-const moment = require('moment');
-const gumjinPoint = require('../GumjinPoint');
+const fs = require("fs");
+const db = require("../db");
+const utils = require("../Utils");
+const moment = require("moment");
+const gumjinPoint = require("../GumjinPoint");
 
 async function setLog(req, res, next) {
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
 
     var sql = `SELECT visit FROM ANALYZER_tbl WHERE ip = ? ORDER BY idx DESC LIMIT 0, 1`;
     var params = [ip];
@@ -19,21 +19,21 @@ async function setLog(req, res, next) {
     }
 
     sql = `INSERT INTO ANALYZER_tbl SET ip = ?, agent = ?, visit = ?, created = NOW()`;
-    params = [ip, req.headers['user-agent'], cnt];
+    params = [ip, req.headers["user-agent"], cnt];
     var result = await utils.queryResult(sql, params);
 
     //4분이상 것들 삭제!!
-    fs.readdir('./liveuser', async function(err, filelist) {
+    fs.readdir("./liveuser", async function (err, filelist) {
         for (file of filelist) {
-            await fs.readFile('./liveuser/' + file, 'utf8', function(err, data) {
+            await fs.readFile("./liveuser/" + file, "utf8", function (err, data) {
                 if (!err) {
                     try {
-                        var tmp = data.split('|S|');
+                        var tmp = data.split("|S|");
                         moment.tz.setDefault("Asia/Seoul");
-                        var connTime = moment.unix(tmp[0] / 1000).format('YYYY-MM-DD HH:mm');
+                        var connTime = moment.unix(tmp[0] / 1000).format("YYYY-MM-DD HH:mm");
                         var minDiff = moment.duration(moment(new Date()).diff(moment(connTime))).asMinutes();
                         if (minDiff > 4) {
-                            fs.unlink('./liveuser/' + file, function(err) {
+                            fs.unlink("./liveuser/" + file, function (err) {
                                 if (err) {
                                     console.log(err);
                                 }
@@ -51,7 +51,7 @@ async function setLog(req, res, next) {
 
     //현재 접속자 파일 생성
     var memo = new Date().getTime() + "|S|" + req.baseUrl + req.path;
-    fs.writeFile('./liveuser/' + ip, memo, function(err) {
+    fs.writeFile("./liveuser/" + ip, memo, function (err) {
         if (err) {
             console.log(err);
         }
@@ -60,9 +60,7 @@ async function setLog(req, res, next) {
     next();
 }
 
-
-
-router.get('/detail/:memb_idx', setLog, async function(req, res, next) {
+router.get("/detail/:memb_idx", setLog, async function (req, res, next) {
     const memb_idx = req.params.memb_idx;
 
     var obj = {};
@@ -72,7 +70,7 @@ router.get('/detail/:memb_idx', setLog, async function(req, res, next) {
     var params = [memb_idx];
     var resultArr = await utils.queryResult(sql, params);
     var resultObj = resultArr[0];
-    
+
     obj.user_info = resultObj;
 
     //기본정보
@@ -81,13 +79,10 @@ router.get('/detail/:memb_idx', setLog, async function(req, res, next) {
     // resultArr = await utils.queryResult(sql, params);
     // obj.blog = resultArr;
 
-   
-    
-
     res.send(obj);
 });
 
-router.get('/get_gumjin_graph/:memb_idx', setLog, async function(req, res, next) {
+router.get("/get_gumjin_graph/:memb_idx", setLog, async function (req, res, next) {
     const memb_idx = req.params.memb_idx;
 
     var sql = `SELECT gender FROM MEMB_tbl WHERE idx = ?`;
@@ -106,30 +101,30 @@ router.get('/get_gumjin_graph/:memb_idx', setLog, async function(req, res, next)
 
     var arr = [];
     for (obj of resultArr) {
-        obj.created = moment(obj.created).format('MM/DD');
-        if (obj.squat == '') {
+        obj.created = moment(obj.created).format("MM/DD");
+        if (obj.squat == "") {
             obj.squat = 0;
         }
 
-        if (obj.akruk == '') {
+        if (obj.akruk == "") {
             obj.akruk = 0;
         }
 
-        if (obj.jongari == '') {
+        if (obj.jongari == "") {
             obj.jongari = 0;
         }
 
-        if (obj.asm == '') {
+        if (obj.asm == "") {
             obj.asm = 0;
         }
 
-        obj.squat_point = gumjinPoint.getSquatPoint(obj.squat);
-        obj.akruk_point = gumjinPoint.getAkrukPoint(gender, obj.akruk);
-        obj.jongari_point = gumjinPoint.getJongariPoint(gender, obj.jongari);
-        obj.asm_point = gumjinPoint.getASMPoint(gender, obj.asm);
-
-        
-        arr.push(obj);
+        if (obj.squat > 0 || obj.akruk > 0 || obj.jongari > 0) {
+            obj.squat_point = gumjinPoint.getSquatPoint(obj.squat);
+            obj.akruk_point = gumjinPoint.getAkrukPoint(gender, obj.akruk);
+            obj.jongari_point = gumjinPoint.getJongariPoint(gender, obj.jongari);
+            obj.asm_point = gumjinPoint.getASMPoint(gender, obj.asm);
+            arr.push(obj);
+        }
     }
 
     var emptyCnt = 6 - arr.length;
@@ -140,7 +135,11 @@ router.get('/get_gumjin_graph/:memb_idx', setLog, async function(req, res, next)
                 akruk: 0,
                 jongari: 0,
                 asm: 0,
-                created: '',
+                squat_point: 0,
+                akruk_point: 0,
+                jongari_point: 0,
+                asm_point: 0,
+                created: "",
             });
         }
     }
@@ -148,7 +147,7 @@ router.get('/get_gumjin_graph/:memb_idx', setLog, async function(req, res, next)
     res.send(arr);
 });
 
-router.get('/get_bmi_graph/:memb_idx', setLog, async function(req, res, next) {
+router.get("/get_bmi_graph/:memb_idx", setLog, async function (req, res, next) {
     const memb_idx = req.params.memb_idx;
 
     var sql = `SELECT * FROM MEMB_tbl WHERE idx = ?`;
@@ -160,14 +159,7 @@ router.get('/get_bmi_graph/:memb_idx', setLog, async function(req, res, next) {
         const result = {
             avg: 0,
             age: 0,
-            bmi_list: [
-                gumjinPoint.getBMIObject(0),
-                gumjinPoint.getBMIObject(0),
-                gumjinPoint.getBMIObject(0),
-                gumjinPoint.getBMIObject(0),
-                gumjinPoint.getBMIObject(0),
-                gumjinPoint.getBMIObject(0),
-            ],
+            bmi_list: [gumjinPoint.getBMIObject(0), gumjinPoint.getBMIObject(0), gumjinPoint.getBMIObject(0), gumjinPoint.getBMIObject(0), gumjinPoint.getBMIObject(0), gumjinPoint.getBMIObject(0)],
         };
         res.send(result);
         return;
@@ -175,9 +167,9 @@ router.get('/get_bmi_graph/:memb_idx', setLog, async function(req, res, next) {
 
     var birth = resultObj.birth;
     var gender = resultObj.gender;
-        
+
     var bmiArr = [];
-        
+
     sql = `
         SELECT Z.idx, Z.wdate, Z.height, Z.weight FROM (
             SELECT * FROM BODY_tbl WHERE memb_idx = ? ORDER BY created DESC LIMIT 100
@@ -189,15 +181,15 @@ router.get('/get_bmi_graph/:memb_idx', setLog, async function(req, res, next) {
     resultArr = resultArr.reverse();
     var age = 0;
     for (obj of resultArr) {
-        age = utils.getAge2(birth, obj.wdate.split('-')[0]);
-        
+        age = utils.getAge2(birth, obj.wdate.split("-")[0]);
+
         //bmi 계산
         let w = eval(obj.weight);
         let h = eval(obj.height);
         var tmp2 = w / (h * 0.01 * h * 0.01);
         //
 
-        var bmiObj = gumjinPoint.getBMIObject(tmp2.toFixed(2), moment(obj.wdate).format('MM/DD'));
+        var bmiObj = gumjinPoint.getBMIObject(tmp2.toFixed(2), moment(obj.wdate).format("MM/DD"));
         bmiArr.push(bmiObj);
     }
 

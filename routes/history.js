@@ -199,7 +199,11 @@ router.post("/add", setLog, async function (req, res, next) {
 
     //asm 구하기!
     var asm = (eval(left_arm) + eval(right_arm) + eval(left_foot) + eval(right_foot)) / Math.pow(eval(height1) / 100, 2);
-    asm = asm.toFixed(2);
+    if (asm) {
+        asm = asm.toFixed(2);
+    } else {
+        asm = "0.0";
+    }
     //
 
     var sql = `
