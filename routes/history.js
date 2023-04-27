@@ -195,16 +195,21 @@ router.get("/list/:memb_idx", setLog, async function (req, res, next) {
 });
 
 router.post("/add", setLog, async function (req, res, next) {
-    const { memb_idx, squat, akruk, jongari, left_arm, right_arm, left_foot, right_foot, height1, created } = req.body;
+    const { memb_idx, squat, akruk, jongari, left_arm, right_arm, left_foot, right_foot, height1, asm, created } = req.body;
 
-    //asm 구하기!
-    var asm = (eval(left_arm) + eval(right_arm) + eval(left_foot) + eval(right_foot)) / Math.pow(eval(height1) / 100, 2);
+    var calcAsm = 0;
     if (asm) {
-        asm = asm.toFixed(2);
+        calcAsm = asm;
     } else {
-        asm = "0.0";
+        //asm 구하기!
+        var calcAsm = (eval(left_arm) + eval(right_arm) + eval(left_foot) + eval(right_foot)) / Math.pow(eval(height1) / 100, 2);
+        if (calcAsm) {
+            calcAsm = calcAsm.toFixed(2);
+        } else {
+            calcAsm = "0.0";
+        }
+        //
     }
-    //
 
     var sql = `
         INSERT INTO NEW_MUSCLE_CHECK_tbl SET 
@@ -221,7 +226,7 @@ router.post("/add", setLog, async function (req, res, next) {
             created = ?,
             modified = NOW()
         `;
-    var params = [memb_idx, squat, akruk, jongari, left_arm, right_arm, left_foot, right_foot, height1, asm, created];
+    var params = [memb_idx, squat, akruk, jongari, left_arm, right_arm, left_foot, right_foot, height1, calcAsm, created];
     var resultArr = await utils.queryResult(sql, params);
     if (!resultArr) {
         resultObj.code = 0;
@@ -287,13 +292,22 @@ router.get("/modify_value/:idx/:column/:value", setLog, async function (req, res
     res.send(obj);
 });
 
-router.get("/modify_asm_value/:idx/:left_arm/:right_arm/:left_foot/:right_foot/:height1", setLog, async function (req, res, next) {
-    const { idx, left_arm, right_arm, left_foot, right_foot, height1 } = req.params;
+router.post("/modify_asm_value", setLog, async function (req, res, next) {
+    const { idx, left_arm, right_arm, left_foot, right_foot, height1, asm } = req.body;
 
-    //asm 구하기!
-    var asm = (eval(left_arm) + eval(right_arm) + eval(left_foot) + eval(right_foot)) / Math.pow(eval(height1) / 100, 2);
-    asm = asm.toFixed(2);
-    //
+    var calcAsm = 0;
+    if (asm) {
+        calcAsm = asm;
+    } else {
+        //asm 구하기!
+        var calcAsm = (eval(left_arm) + eval(right_arm) + eval(left_foot) + eval(right_foot)) / Math.pow(eval(height1) / 100, 2);
+        if (calcAsm) {
+            calcAsm = calcAsm.toFixed(2);
+        } else {
+            calcAsm = "0.0";
+        }
+        //
+    }
 
     var sql = `
         UPDATE NEW_MUSCLE_CHECK_tbl SET 
@@ -306,7 +320,7 @@ router.get("/modify_asm_value/:idx/:left_arm/:right_arm/:left_foot/:right_foot/:
             modified = NOW()
             WHERE idx = ?
         `;
-    var params = [left_arm, right_arm, left_foot, right_foot, height1, asm, idx];
+    var params = [left_arm, right_arm, left_foot, right_foot, height1, calcAsm, idx];
     var resultArr = await utils.queryResult(sql, params);
     if (!resultArr) {
         resultObj.code = 0;
