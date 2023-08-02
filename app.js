@@ -76,6 +76,7 @@ app.use('/api2', require('./routes/api2'));
 app.use('/aud', require('./routes/aud'));
 app.use('/history', require('./routes/history'));
 app.use('/map', require('./routes/map'));
+app.use('/dr_allgn', require('./routes/dr_allgn'));
 
 
 

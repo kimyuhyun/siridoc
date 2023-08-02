@@ -5,7 +5,6 @@ const db = require("../db");
 const utils = require("../Utils");
 const moment = require("moment");
 const gumjinPoint = require("../GumjinPoint");
-const { objectMethod } = require("babel-types");
 
 async function setLog(req, res, next) {
     const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
@@ -195,7 +194,7 @@ router.get("/list/:memb_idx", setLog, async function (req, res, next) {
 });
 
 router.post("/add", setLog, async function (req, res, next) {
-    const { memb_idx, squat, akruk, jongari, left_arm, right_arm, left_foot, right_foot, height1, asm, created } = req.body;
+    const { memb_idx, squat, akruk, jongari, left_arm, right_arm, left_foot, right_foot, height1, asm, squat_graph_json, created } = req.body;
 
     var calcAsm = 0;
     if (asm) {
@@ -223,10 +222,11 @@ router.post("/add", setLog, async function (req, res, next) {
             right_foot = ?,
             height1 = ?,
             asm = ?,
+            squat_graph_json = ?,
             created = ?,
             modified = NOW()
         `;
-    var params = [memb_idx, squat, akruk, jongari, left_arm, right_arm, left_foot, right_foot, height1, calcAsm, created];
+    var params = [memb_idx, squat, akruk, jongari, left_arm, right_arm, left_foot, right_foot, height1, calcAsm, squat_graph_json, created];
     var resultArr = await utils.queryResult(sql, params);
     if (!resultArr) {
         resultObj.code = 0;

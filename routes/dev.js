@@ -63,11 +63,11 @@ async function setLog(req, res, next) {
 
 router.get('/', setLog, async function(req, res, next) {
 
-    // var sql = ``;
-    // var params = [];
-    // var resultArr = await utils.queryResult(sql, params);
-    // var resultObj = resultArr[0];
-    // console.log(resultObj);
+    // const sql = ``;
+    // const params = [];
+    // const arr = await utils.queryResult(sql, params);
+    // const obj = arr[0];
+    // console.log(obj);
 
     res.send('api');
 });
