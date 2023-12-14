@@ -34,10 +34,11 @@
             <table class="table bg-white">
                 <thed>
                     <tr>
-                        <th class="text-center text-nowrap" width="150">
+                        <th class="text-center text-nowrap" width="50">
                             번호
-                            <a class="<%=data.orderby == 'idx DESC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('idx DESC');"><i class="bi bi-arrow-down"></i></a>
-                            <a class="<%=data.orderby == 'idx ASC' ? 'text-link' : 'text-dark'%>" href="Javascript:orderby('idx ASC');"><i class="bi bi-arrow-up"></i></a>
+                        </th>
+                        <th class="text-center text-nowrap" width="100">
+                            환자번호
                         </th>
                         <th class="text-nowrap">
                             이름
@@ -71,6 +72,7 @@
                     <% for (row of data.list) { %>
                     <tr>
                         <td class="text-center text-nowrap"><%=row.idx%></td>
+                        <td class="text-center text-nowrap"><%=row.patient_num=='0'?'':row.patient_num%></td>
                         <td>
                             <div class="d-flex flex-row align-items-center">
                                 <div class="text-truncate" style="max-width: 500px;">
@@ -124,7 +126,7 @@
 
 
 <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <!-- <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -132,26 +134,26 @@
             <div class="modal-body bg-light" id="write_form">
                 
             </div>
+            <div class="modal-footer">
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body bg-light" id="write_form">
+                
+            </div>
+
             <div class="modal-footer">
                 
             </div>
         </div>
     </div> -->
-
-    <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body bg-light" id="write_form">
-                
-            </div>
-
-            <div class="modal-footer">
-                <!-- <button type="button" class="btn btn-primary" onclick="$('#submit').trigger('click');">저장</button> -->
-            </div>
-        </div>
-    </div>
 </div>
 
 
@@ -171,7 +173,7 @@ function page(page) {
 
 function openPopup(url, idx) {
     var return_url = `<%=baseUrl%>?page=<%=data.pageNum%>&table=<%=data.table%>&search_column=<%=data.search_column%>&search_value=<%=data.search_value%>&orderby=<%=data.orderby%>`;
-    console.log(url);
+    console.log(url, idx);
     $.ajax({
         url: url,
         method: 'get',
@@ -184,15 +186,15 @@ function openPopup(url, idx) {
         dataType: "html",
         success: function(result) {
             $("#write_form").html(result);
-            getNewMuscaleCheckList();
+            getNewMuscaleCheckList(idx);
         }
     });
 }
 
-function getNewMuscaleCheckList() {
+function getNewMuscaleCheckList(membIdx) {
     $('#btn_loading').show();
     $.ajax({
-        url: `/history/list/<%=row.idx%>`,
+        url: `/history/list/${membIdx}`,
         method: 'get',
         dataType: 'json',
         success: function(result) {
@@ -200,6 +202,16 @@ function getNewMuscaleCheckList() {
             var no = result.data.length;
             var html = '';
             for (obj of result.data) {
+                for (key in obj) {
+                    if (obj[key] == null) {
+                        obj[key] = '0';
+                    }
+
+                    if (obj[key] == "0.0") {
+                        obj[key] = '0';
+                    }
+                }
+
                 html += `
                     <tr>
                         <td class='text-center'>${no}</td>

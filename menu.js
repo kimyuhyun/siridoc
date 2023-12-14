@@ -14,8 +14,13 @@ const menu = [
                 title: "회원 관리",
                 link: "/adm/user/1",
             },
+        ],
+    },
+    {
+        title: "환자관리",
+        child: [
             {
-                title: "나의 환자 관리",
+                title: "환자관리",
                 link: "/patient/list/patient?table=MEMB_tbl",
             },
         ],

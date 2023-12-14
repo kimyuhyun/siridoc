@@ -1,18 +1,17 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const fs = require('fs');
-const db = require('../db');
-const utils = require('../Utils');
-const moment = require('moment');
-const menus = require('../menu');
-
+const fs = require("fs");
+const db = require("../db");
+const utils = require("../Utils");
+const moment = require("moment");
+const menus = require("../menu");
 
 global.menus = menus;
 global.showMenuLinkArr;
 
 async function checking(req, res, next) {
     if (!req.session.mid) {
-        res.redirect('/adm/login');
+        res.redirect("/adm/login");
         return;
     }
 
@@ -20,15 +19,15 @@ async function checking(req, res, next) {
     var params = [req.session.level1];
     var arr = await utils.queryResult(sql, params);
     if (arr) {
-        global.showMenuLinkArr = arr[0].show_menu_link.substr(1, 9999).split(',');
+        global.showMenuLinkArr = arr[0].show_menu_link.substr(1, 9999).split(",");
     }
     next();
 }
 
-router.get('/list/:view/:menu1/:menu2', checking, async function(req, res, next) {
+router.get("/list/:view/:menu1/:menu2", checking, async function (req, res, next) {
     var view = req.params.view;
     var { table, page, search_column, search_value, orderby } = req.query;
-    
+
     var where = ` WHERE level1 = 9 AND name1 != '' `;
 
     var records = [];
@@ -39,26 +38,30 @@ router.get('/list/:view/:menu1/:menu2', checking, async function(req, res, next)
         records.push(req.session.my_params[key]);
     }
 
-    where += ` AND dct_id = ? `;
-    records.push(req.session.mid);
-    
+    // where += ` AND dct_id = ? `;
+    // records.push(req.session.mid);
+
     if (search_column && search_value) {
         where += ` AND ?? LIKE ? `;
         records.push(search_column);
         records.push(`%${search_value}%`);
     } else {
-        search_column = '';
-        search_value = '';
+        search_column = "";
+        search_value = "";
     }
 
     if (orderby) {
-        if (orderby.toLowerCase().includes('delete') || orderby.toLowerCase().includes('update') || orderby.toLowerCase().includes('select')) {
-            console.log('err', orderby);
+        if (
+            orderby.toLowerCase().includes("delete") ||
+            orderby.toLowerCase().includes("update") ||
+            orderby.toLowerCase().includes("select")
+        ) {
+            console.log("err", orderby);
             res.send(orderby);
             return;
         }
     } else {
-        orderby = ' idx DESC ';
+        orderby = " idx DESC ";
     }
 
     var sql = `SELECT COUNT(*) as cnt FROM ?? ${where}`;
@@ -72,7 +75,7 @@ router.get('/list/:view/:menu1/:menu2', checking, async function(req, res, next)
 
     sql = `
         SELECT 
-        * 
+            * 
         FROM ?? 
         ${where} 
         ORDER BY ${orderby}
@@ -104,27 +107,21 @@ router.get('/list/:view/:menu1/:menu2', checking, async function(req, res, next)
     });
 });
 
-
-router.get('/write', checking, async function(req, res, next) {
-    var { idx, return_url, table, view } = req.query;
-
+router.get("/write", checking, async function (req, res, next) {
+    const { idx, return_url, table, view } = req.query;
     var row = {};
-    
-    var sql = `SELECT * FROM ?? WHERE idx = ?`;
-    var params = [table, idx];
-    var arr = await utils.queryResult(sql, params);
+
+    const sql = `SELECT * FROM ?? WHERE idx = ?`;
+    const params = [table, idx];
+    const arr = await utils.queryResult(sql, params);
     row = arr[0];
-    
+
     res.render(`./adm/${view}_write.html`, {
         myinfo: req.session,
         return_url,
         table,
-        row
+        row,
     });
-
-
-
-
 });
 
 module.exports = router;
