@@ -210,7 +210,7 @@ router.post("/add", setLog, async function (req, res, next) {
         //
     }
 
-    var sql = `
+    const sql = `
         INSERT INTO NEW_MUSCLE_CHECK_tbl SET 
             memb_idx = ?,
             squat = ?,
@@ -226,15 +226,15 @@ router.post("/add", setLog, async function (req, res, next) {
             created = ?,
             modified = NOW()
         `;
-    var params = [memb_idx, squat, akruk, jongari, left_arm, right_arm, left_foot, right_foot, height1, calcAsm, squat_graph_json, created];
-    var resultArr = await utils.queryResult(sql, params);
+    const params = [memb_idx, squat, akruk, jongari, left_arm, right_arm, left_foot, right_foot, height1, calcAsm, squat_graph_json, created];
+    const resultArr = await utils.queryResult(sql, params);
     if (!resultArr) {
         resultObj.code = 0;
         resultObj.msg = `INSERT Error.`;
-        res.send(resultObj);
+        res.json(resultObj);
         return;
     }
-    res.send({ code: 1 });
+    res.json({ code: 1 });
 });
 
 router.get("/modify_value/:idx/:column/:value", setLog, async function (req, res, next) {
