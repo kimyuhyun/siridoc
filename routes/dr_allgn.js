@@ -13,7 +13,7 @@ router.get("/get_patient_list", async function (req, res, next) {
 
     const params = [];
 
-    var sql = `SELECT idx, name1, birth, gender FROM MEMB_tbl WHERE level1 = 9`;
+    var sql = `SELECT idx, name1, birth, gender, patient_num FROM MEMB_tbl WHERE level1 = 9`;
 
     if (dct_id) {
         params.push(dct_id);
