@@ -25,6 +25,7 @@ router.get("/get_patient_list", async function (req, res, next) {
         sql += ` AND (patient_num LIKE ? OR name1 LIKE ? OR birth LIKE ?)`;
         params.push(search_txt);
         params.push(search_txt);
+        params.push(search_txt);
     }
 
     params.push(page);
