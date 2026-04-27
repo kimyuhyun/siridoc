@@ -1,5 +1,5 @@
 require('dotenv').config();
-let maria = require('mysql');
+let maria = require('mysql2');
 
 let option = {
     host: process.env.DB_HOST,

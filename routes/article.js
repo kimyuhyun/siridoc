@@ -431,18 +431,7 @@ router.post('/id_pass_confirm', setLog, async function(req, res, next) {
     var dbPass = '';
     var inPass = '';
 
-    await new Promise(function(resolve, reject) {
-        const sql = `SELECT PASSWORD(?) as pass1 FROM dual`;
-        db.query(sql, pass1, function(err, rows, fields) {
-            if (!err) {
-                resolve(rows[0]);
-            } else {
-                console.log(err);
-            }
-        });
-    }).then(function(data) {
-        dbPass = data.pass1;
-    });
+    dbPass = utils.mysqlPassword(pass1);
 
     await new Promise(function(resolve, reject) {
         const sql = `SELECT pass1 FROM BOARD_tbl WHERE idx = ? AND id = ?`;

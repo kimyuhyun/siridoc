@@ -3,12 +3,10 @@ process.env.NODE_ENV = (process.env.NODE_ENV && (process.env.NODE_ENV).trim().to
 const createError = require('http-errors');
 const express = require('express');
 const session = require('express-session');
-const MySQLStore = require('express-mysql-session')(session);
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const requestIp = require('request-ip');
 const logger = require('morgan');
-const db = require('./db');
 
 const indexRouter = require('./routes/index');
 const admRouter = require('./routes/adm');
@@ -32,18 +30,14 @@ app.use(session({
     secret: 'secret',
     resave: false,
     saveUninitialized: true,
-    store: new MySQLStore(db.connAccount),
     cookie: {
         maxAge: 24000 * 3600 // 쿠키 유효기간 24시간
     }
 }));
 
 app.engine('html', require('ejs').renderFile);
-app.set('view engine', 'ejs');
-
-// view engine setup
-// app.set('views', path.join(__dirname, 'views'));
-// app.set('view engine', 'jade');
+app.set('view engine', 'html');
+app.set('views', path.join(__dirname, 'views'));
 
 app.use(logger('dev'));
 app.use(express.json());

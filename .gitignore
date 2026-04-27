@@ -1,4 +1,6 @@
-.env
 node_modules/
-liveuser/
 data/
+liveuser/
+.DS_Store
+.env
+

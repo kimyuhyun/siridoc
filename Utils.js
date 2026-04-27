@@ -1,49 +1,63 @@
-const fs = require('fs');
-const db = require('./db');
-const requestIp = require('request-ip');
-const axios = require('axios');
-
+const fs = require("fs");
+const crypto = require("crypto");
+const db = require("./db");
+const requestIp = require("request-ip");
+const axios = require("axios");
 
 class Utils {
-    ToFloat(number){
-    	var tmp = number + "";
-    	if(tmp.indexOf(".") != -1){
-    		number = number.toFixed(4);
-    		number = number.replace(/(0+$)/, "");
-    	}
-    	return number;
+    mysqlPassword(password) {
+        const sha1_1 = crypto.createHash('sha1').update(password).digest();
+        const sha1_2 = crypto.createHash('sha1').update(sha1_1).digest('hex').toUpperCase();
+        return '*' + sha1_2;
+    }
+
+    ToFloat(number) {
+        var tmp = number + "";
+        if (tmp.indexOf(".") != -1) {
+            number = number.toFixed(4);
+            number = number.replace(/(0+$)/, "");
+        }
+        return number;
     }
 
     setSaveMenu(req) {
         var self = this;
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
             if (req.query.name1 != null) {
-                db.query('SELECT * FROM SAVE_MENU_tbl WHERE link = ? AND id = ?', [CURRENT_URL, req.session.mid], function(err, rows, fields) {
-                    if (!err) {
-                        if (rows.length == 0) {
-                            var sql = `
+                db.query(
+                    "SELECT * FROM SAVE_MENU_tbl WHERE link = ? AND id = ?",
+                    [CURRENT_URL, req.session.mid],
+                    function (err, rows, fields) {
+                        if (!err) {
+                            if (rows.length == 0) {
+                                var sql = `
                                 INSERT INTO SAVE_MENU_tbl SET
                                 id = ?,
                                 name1 = ?,
                                 link = ? `;
-                            db.query(sql, [req.session.mid, req.query.name1, CURRENT_URL], function(err, rows, fields) {
-                                console.log(err);
-                                self.getSaveMenu(req).then(function(data) {
+                                db.query(
+                                    sql,
+                                    [req.session.mid, req.query.name1, CURRENT_URL],
+                                    function (err, rows, fields) {
+                                        console.log(err);
+                                        self.getSaveMenu(req).then(function (data) {
+                                            resolve(data);
+                                        });
+                                    },
+                                );
+                            } else {
+                                self.getSaveMenu(req).then(function (data) {
                                     resolve(data);
                                 });
-                            });
+                            }
                         } else {
-                            self.getSaveMenu(req).then(function(data) {
-                                resolve(data);
-                            });
+                            console.log("err", err);
+                            res.send(err);
                         }
-                    } else {
-                        console.log('err', err);
-                        res.send(err);
-                    }
-                });
+                    },
+                );
             } else {
-                self.getSaveMenu(req).then(function(data) {
+                self.getSaveMenu(req).then(function (data) {
                     resolve(data);
                 });
             }
@@ -51,13 +65,13 @@ class Utils {
     }
 
     getSaveMenu(req) {
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
             if (req.session.mid != null) {
-                db.query("SELECT * FROM SAVE_MENU_tbl WHERE id = ?", req.session.mid, function(err, rows, fields) {
+                db.query("SELECT * FROM SAVE_MENU_tbl WHERE id = ?", req.session.mid, function (err, rows, fields) {
                     if (!err) {
                         resolve(rows);
                     } else {
-                        console.log('err', err);
+                        console.log("err", err);
                         res.send(err);
                     }
                 });
@@ -69,15 +83,15 @@ class Utils {
 
     async sendPush(id, msg, menu_flag) {
         var fcmArr = [];
-        await new Promise(function(resolve, reject) {
-            var sql = "SELECT fcm FROM MEMB_tbl WHERE id = ? AND IS_push = 1 AND is_logout = 0"
-            db.query(sql, id, function(err, rows, fields) {
+        await new Promise(function (resolve, reject) {
+            var sql = "SELECT fcm FROM MEMB_tbl WHERE id = ? AND IS_push = 1 AND is_logout = 0";
+            db.query(sql, id, function (err, rows, fields) {
                 console.log(rows.length);
                 if (!err) {
                     if (rows.length > 0) {
                         resolve(rows[0].fcm);
                     } else {
-                        console.log(id + '의 IS_ALARM, IS_LOGOUT 값을 체크해보세요.');
+                        console.log(id + "의 IS_ALARM, IS_LOGOUT 값을 체크해보세요.");
                         return;
                     }
                 } else {
@@ -85,46 +99,48 @@ class Utils {
                     return;
                 }
             });
-        }).then(function(data) {
+        }).then(function (data) {
             fcmArr.push(data);
         });
 
         var fields = {};
-        fields['notification'] = {};
-        fields['data'] = {};
+        fields["notification"] = {};
+        fields["data"] = {};
 
-        fields['registration_ids'] = fcmArr;
-        fields['notification']['title'] = 'Mybaby';
-        fields['notification']['body'] = msg;
+        fields["registration_ids"] = fcmArr;
+        fields["notification"]["title"] = "Mybaby";
+        fields["notification"]["body"] = msg;
         // fields['notification']['click_action'] = 'NOTI_CLICK'; //액티비티 다이렉트 호출
-        fields['priority'] = 'high';
-        fields['data']['menu_flag'] = menu_flag;               //키값은 대문자 안먹음..
+        fields["priority"] = "high";
+        fields["data"]["menu_flag"] = menu_flag; //키값은 대문자 안먹음..
 
         var config = {
-            method: 'post',
-            url: 'https://fcm.googleapis.com/fcm/send',
+            method: "post",
+            url: "https://fcm.googleapis.com/fcm/send",
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'key=' + process.env.FCM_SERVER_KEY
+                "Content-Type": "application/json",
+                Authorization: "key=" + process.env.FCM_SERVER_KEY,
             },
             data: JSON.stringify(fields),
         };
 
-        var result = '';
+        var result = "";
 
-        await new Promise(function(resolve, reject) {
-            axios(config).then(function (response) {
-                //알림내역저장
-                if (response.data.success == 1) {
-                    // const sql = "INSERT INTO ALARM_tbl SET ID = ?, MESSAGE = ?, WDATE = NOW()";
-                    // db.query(sql, [id, msg]);
-                }
-                //
-                resolve(response.data);
-            }).catch(function (error) {
-                resolve(error);
-            });
-        }).then(function(data) {
+        await new Promise(function (resolve, reject) {
+            axios(config)
+                .then(function (response) {
+                    //알림내역저장
+                    if (response.data.success == 1) {
+                        // const sql = "INSERT INTO ALARM_tbl SET ID = ?, MESSAGE = ?, WDATE = NOW()";
+                        // db.query(sql, [id, msg]);
+                    }
+                    //
+                    resolve(response.data);
+                })
+                .catch(function (error) {
+                    resolve(error);
+                });
+        }).then(function (data) {
             result = data;
         });
         return result;
@@ -133,9 +149,9 @@ class Utils {
     async sendArticlePush(id, msg, idx, writer, board_id) {
         var fcmArr = [];
         var resultObj = {};
-        await new Promise(function(resolve, reject) {
-            var sql = "SELECT fcm FROM MEMB_tbl WHERE id = ? AND IS_push = 1 AND is_logout = 0"
-            db.query(sql, id, function(err, rows, fields) {
+        await new Promise(function (resolve, reject) {
+            var sql = "SELECT fcm FROM MEMB_tbl WHERE id = ? AND IS_push = 1 AND is_logout = 0";
+            db.query(sql, id, function (err, rows, fields) {
                 console.log(rows.length);
                 if (!err) {
                     if (rows.length > 0) {
@@ -157,7 +173,7 @@ class Utils {
                     });
                 }
             });
-        }).then(function(data) {
+        }).then(function (data) {
             resultObj = data;
         });
 
@@ -167,51 +183,52 @@ class Utils {
             return resultObj.data;
         }
 
-
         var fields = {};
-        fields['notification'] = {};
-        fields['data'] = {};
+        fields["notification"] = {};
+        fields["data"] = {};
 
-        fields['registration_ids'] = fcmArr;
-        fields['notification']['title'] = 'Siridoc';
-        fields['notification']['body'] = msg;
+        fields["registration_ids"] = fcmArr;
+        fields["notification"]["title"] = "Siridoc";
+        fields["notification"]["body"] = msg;
 
-        if (board_id == 'growth') {
-            fields['notification']['click_action'] = 'growth_detail'; //액티비티 다이렉트 호출
+        if (board_id == "growth") {
+            fields["notification"]["click_action"] = "growth_detail"; //액티비티 다이렉트 호출
         } else {
-            fields['notification']['click_action'] = 'article_detail'; //액티비티 다이렉트 호출
+            fields["notification"]["click_action"] = "article_detail"; //액티비티 다이렉트 호출
         }
 
-        fields['priority'] = 'high';
-        fields['data']['idx'] = idx;
-        fields['data']['writer'] = writer;
-        fields['data']['board_id'] = board_id;
+        fields["priority"] = "high";
+        fields["data"]["idx"] = idx;
+        fields["data"]["writer"] = writer;
+        fields["data"]["board_id"] = board_id;
 
         var config = {
-            method: 'post',
-            url: 'https://fcm.googleapis.com/fcm/send',
+            method: "post",
+            url: "https://fcm.googleapis.com/fcm/send",
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'key=' + process.env.FCM_SERVER_KEY
+                "Content-Type": "application/json",
+                Authorization: "key=" + process.env.FCM_SERVER_KEY,
             },
             data: JSON.stringify(fields),
         };
 
-        var result = '';
+        var result = "";
 
-        await new Promise(function(resolve, reject) {
-            axios(config).then(function (response) {
-                //알림내역저장
-                if (response.data.success == 1) {
-                    // const sql = "INSERT INTO ALARM_tbl SET ID = ?, MESSAGE = ?, WDATE = NOW()";
-                    // db.query(sql, [id, msg]);
-                }
-                //
-                resolve(response.data);
-            }).catch(function (error) {
-                resolve(error);
-            });
-        }).then(function(data) {
+        await new Promise(function (resolve, reject) {
+            axios(config)
+                .then(function (response) {
+                    //알림내역저장
+                    if (response.data.success == 1) {
+                        // const sql = "INSERT INTO ALARM_tbl SET ID = ?, MESSAGE = ?, WDATE = NOW()";
+                        // db.query(sql, [id, msg]);
+                    }
+                    //
+                    resolve(response.data);
+                })
+                .catch(function (error) {
+                    resolve(error);
+                });
+        }).then(function (data) {
             result = data;
         });
         return result;
@@ -219,8 +236,10 @@ class Utils {
 
     async queryResult(sql, params) {
         var arr = [];
-        await new Promise(function(resolve, reject) {
-            var query = db.query(sql, params, function(err, rows, fields) {
+        await new Promise(function (resolve, reject) {
+            var query = db.query(sql, params, function (err, rows, fields) {
+                console.log("@@@@", query.sql);
+
                 if (!err) {
                     resolve(rows);
                 } else {
@@ -228,11 +247,13 @@ class Utils {
                 }
             });
             console.log(query.sql);
-        }).then(async function(data) {
-            arr = data;
-        }).catch(function(reason) {
-            arr = reason;
-        });
+        })
+            .then(async function (data) {
+                arr = data;
+            })
+            .catch(function (reason) {
+                arr = reason;
+            });
         arr = await this.nvl(arr);
         return arr;
     }
@@ -246,15 +267,15 @@ class Utils {
         if (arr.length != null) {
             for (var rows of arr) {
                 for (var i in rows) {
-                    if (rows[i] == null || rows[i] == 'null') {
-                        rows[i] = '0';
+                    if (rows[i] == null || rows[i] == "null") {
+                        rows[i] = "0";
                     }
                 }
             }
         } else {
             for (var i in arr) {
-                if (arr[i] == null || arr[i] == 'null') {
-                    arr[i] = '0';
+                if (arr[i] == null || arr[i] == "null") {
+                    arr[i] = "0";
                 }
             }
         }
@@ -264,14 +285,14 @@ class Utils {
     getAge(birth) {
         var date = new Date();
         var year = date.getFullYear();
-        var tmp = birth.split('-')[0];
+        var tmp = birth.split("-")[0];
         var age = year - tmp;
         return age;
     }
 
     getAge2(birth, year) {
         console.log(birth, year);
-        var tmp = birth.split('-')[0];
+        var tmp = birth.split("-")[0];
         var age = year - tmp;
         return age;
     }
@@ -287,8 +308,8 @@ class Utils {
         const skipSize = (pageNum - 1) * contentSize; // NOTE: 다음 페이지 갈 때 건너뛸 리스트 개수.
         const totalCount = Number(rowCount); // NOTE: 전체 글 개수.
         const pnTotal = Math.ceil(totalCount / contentSize); // NOTE: 페이지네이션의 전체 카운트
-        const pnStart = ((Math.ceil(pageNum / pnSize) - 1) * pnSize) + 1; // NOTE: 현재 페이지의 페이지네이션 시작 번호.
-        var pnEnd = (pnStart + pnSize) - 1; // NOTE: 현재 페이지의 페이지네이션 끝 번호.
+        const pnStart = (Math.ceil(pageNum / pnSize) - 1) * pnSize + 1; // NOTE: 현재 페이지의 페이지네이션 시작 번호.
+        var pnEnd = pnStart + pnSize - 1; // NOTE: 현재 페이지의 페이지네이션 끝 번호.
         if (pnEnd > pnTotal) {
             pnEnd = pnTotal;
         }
@@ -307,31 +328,31 @@ class Utils {
             pnTotal,
             pnPrev,
             pnNext,
-        }
+        };
 
         return data;
     }
 
     utilConvertToMillis(time) {
         var time = new Date(time).getTime() / 1000;
-        var currentTime = Math.floor(new Date().getTime()/1000);
+        var currentTime = Math.floor(new Date().getTime() / 1000);
         var inputTime = time;
         var diffTime = currentTime - inputTime;
         var postTime;
-        switch(true) {
-            case diffTime < 60 :
-                postTime = '방금';
+        switch (true) {
+            case diffTime < 60:
+                postTime = "방금";
                 break;
-            case diffTime < 3600 :
-                postTime = parseInt(diffTime / 60) + '분 전';
+            case diffTime < 3600:
+                postTime = parseInt(diffTime / 60) + "분 전";
                 break;
-            case diffTime < 86400 :
-                postTime = parseInt(diffTime / 3600) + '시간 전';
+            case diffTime < 86400:
+                postTime = parseInt(diffTime / 3600) + "시간 전";
                 break;
-            case diffTime < 604800 :
-                postTime = parseInt(diffTime / 86400) + '일 전';
+            case diffTime < 604800:
+                postTime = parseInt(diffTime / 86400) + "일 전";
                 break;
-            case diffTime > 604800 :
+            case diffTime > 604800:
                 var date = new Date(time * 1000);
                 var month = eval(date.getMonth() + 1);
                 var day = date.getDate();
@@ -339,11 +360,11 @@ class Utils {
                     month = "0" + eval(date.getMonth() + 1);
                 }
                 if (date.getDate() < 10) {
-                    day = "0" + date.getDate()
+                    day = "0" + date.getDate();
                 }
                 postTime = date.getFullYear() + "-" + month + "-" + day;
                 break;
-            default: 
+            default:
                 postTime = time;
         }
         return postTime;

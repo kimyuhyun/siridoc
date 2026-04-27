@@ -43,8 +43,8 @@ router.get('/login', function(req, res, next) {
 });
 
 router.post('/login', async function(req, res, next) {
-    var sql = `SELECT idx, id, name1, level1, filename0 FROM MEMB_tbl WHERE id = ? AND pass1 = PASSWORD(?)`;
-    var params = [req.body.id, req.body.pw];
+    var sql = `SELECT idx, id, name1, level1, filename0 FROM MEMB_tbl WHERE id = ? AND pass1 = ?`;
+    var params = [req.body.id, utils.mysqlPassword(req.body.pw)];
     var arr = await utils.queryResult(sql, params);
     var obj = arr[0];
 

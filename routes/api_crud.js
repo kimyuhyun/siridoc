@@ -35,7 +35,9 @@ router.post('/write', checking, async function(req, res, next) {
     for (key in req.body) {
         if (req.body[key] != 'null') {
             if (key == 'pass1') {
-                sql += key + '= PASSWORD(?), ';
+                sql += key + '= ?, ';
+                records.push(utils.mysqlPassword(req.body[key]));
+                continue;
             } else {
                 sql += key + '= ?, ';
             }

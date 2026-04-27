@@ -158,8 +158,8 @@ router.post('/write', checking, async function(req, res, next) {
         if (req.body[key] != 'null') {
             if (key == 'pass1') {
                 if (req.body[key]) {
-                    sql += key + '= PASSWORD(?), ';
-                    records.push(req.body[key]);
+                    sql += key + '= ?, ';
+                    records.push(utils.mysqlPassword(req.body[key]));
                 }
             } else {
                 sql += key + '= ?, ';
